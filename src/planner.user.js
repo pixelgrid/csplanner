@@ -4,28 +4,28 @@
 	function getGlobalStyles(){
 		return `
 			.activetables {
-		    display: flex;
-		    gap: 5px;
-		    flex-wrap: wrap;
-		    margin-bottom: 20px;
+			    display: flex;
+			    gap: 5px;
+			    flex-wrap: wrap;
+			    margin-bottom: 20px;
 			}
 			
 			.activetables .tournamenttable {
-		    background: white;
-		    color: black;
-		    font-size: 14px;
-		    padding: 5px;
-		    border-radius: 4px;
-		    cursor: pointer;
-		    position: relative;
-		    border: 1px solid red;
-		    border-bottom-width: 5px;
+			    background: white;
+			    color: black;
+			    font-size: 14px;
+			    padding: 5px;
+			    border-radius: 4px;
+			    cursor: pointer;
+			    position: relative;
+			    border: 1px solid red;
+			    border-bottom-width: 5px;
 			}
 			
 			.tableswitch:checked + label {
 				background-color: white;
-		    border: 1px solid green;
-		    border-bottom-width: 5px;
+			    border: 1px solid green;
+			    border-bottom-width: 5px;
 			}
 			
 			.activetables input {
@@ -36,83 +36,83 @@
 				color: black;
 			}
 			table.score select.tablePicker option{
-			  font-size:14px;
-			  width:150px;
-			  margin:5px;
-			  padding:5px
+				font-size:14px;
+				width:150px;
+				margin:5px;
+				padding:5px
 			}
 			.canstart {
-			  background: rgb(0 128 0 / 70%)!important;
-			  color: white!important;
+				background: rgb(0 128 0 / 70%)!important;
+				color: white!important;
 			}
 			select.tablePicker,
 			select.tablePicker::picker(select) {
-			  appearance: base-select;
+				appearance: base-select;
 			}
 			select.tablePicker{
-		    background:none;
-		    padding:0;
-		    width: 80px;
+			    background:none;
+			    padding:0;
+			    width: 80px;
 			}
 			
 			.floatingmessage {
 				position: fixed;
-		    top: 100px;
-		    right: 20px;
-		    padding: 20px;
-		    z-index: 10;
-		    border-radius: 5px;
-		    font-weight: bold;
-		    background: white;
-		    color: black;
-		    outline: 5px double #8BAE66;
-		    border-bottom: 5px solid #8BAE66;
+			    top: 100px;
+			    right: 20px;
+			    padding: 20px;
+			    z-index: 10;
+			    border-radius: 5px;
+			    font-weight: bold;
+			    background: white;
+			    color: black;
+			    outline: 5px double #8BAE66;
+			    border-bottom: 5px solid #8BAE66;
 			}
 			
 			.floatingmessage:after {
-		    content: '  games can start';
+		    	content: '  games can start';
 			}
 			
 			.floatingmessage.expand {
-		    width: 300px;
-		    height: 300px;
-		    border-radius: 100%;
-		    font-size: 100px;
-		    display: flex;
-		    justify-content: center;
-		    align-items: center;
-		    text-shadow: 2px 2px black, 3px 3px red, -2px -2px teal;
+			    width: 300px;
+			    height: 300px;
+			    border-radius: 100%;
+			    font-size: 100px;
+			    display: flex;
+			    justify-content: center;
+			    align-items: center;
+			    text-shadow: 2px 2px black, 3px 3px red, -2px -2px teal;
 			}
 			
 			.floatingmessage.expand:after {
-		    content: 'games can start';
-		    font-size: 14px;
-		    text-shadow: none;
-		    position: absolute;
-		    bottom: 40px;
+			    content: 'games can start';
+			    font-size: 14px;
+			    text-shadow: none;
+			    position: absolute;
+			    bottom: 40px;
 			}
 			
 			.floatingmessage:hover:before {
-		    content: "click to expand";
-		    position: absolute;
-		    top: 120%;
-		    font-size: 12px;
-		    font-weight: normal;
-		    width: 100%;
-		    text-align: center;
-		    left: 0;
+			    content: "click to expand";
+			    position: absolute;
+			    top: 120%;
+			    font-size: 12px;
+			    font-weight: normal;
+			    width: 100%;
+			    text-align: center;
+			    left: 0;
 			}
 			
 			.floatingmessage.expand:hover:before {
-		    content: "click to shrink";
-		    position: absolute;
-		    top: 105%;
-		    font-size: 12px;
-		    font-weight: normal;
-		    width: 100%;
-		    text-align: center;
-		    left: 0;
-		    text-shadow: none;
+			    content: "click to shrink";
+			    position: absolute;
+			    top: 105%;
+			    font-size: 12px;
+			    font-weight: normal;
+			    width: 100%;
+			    text-align: center;
+			    left: 0;
+			    text-shadow: none;
 			}
 			
 			@media (min-width: 1000px){
