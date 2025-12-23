@@ -1,10 +1,12 @@
 # csplanner
-Helpers for cuescore managers
+Helpers for cuescore tournament managers
 
 The code here is primarily to be used on mobile devices or tablets when visiting a cuescore tournament page that you have edit access over.
 
 The minified planner.js should be saved as a javascript bookmark.
 A tool like https://caiorss.github.io/bookmarklet-maker/ can be used
+
+Depending on the browser and platform different developer settings might need to be enabled.
 
 
 Once in a cuescore tournament page, you type the name of the bookmark created above in the address bar and you select it. After that the following will be made available
