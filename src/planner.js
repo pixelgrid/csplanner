@@ -1,4 +1,3 @@
-// global styles
 document.head.insertAdjacentHTML('beforeend', `<style>${getGlobalStyles()}<style>`);
 
 function getGlobalStyles(){
@@ -10,17 +9,21 @@ function getGlobalStyles(){
 		}
 		
 		.activetables .tournamenttable {
-	    background: red;
-	    color: white;
+	    background: white;
+	    color: black;
 	    font-size: 14px;
 	    padding: 5px;
 	    border-radius: 4px;
 	    cursor: pointer;
 	    position: relative;
+	    border: 1px solid red;
+	    border-bottom-width: 5px;
 		}
 		
 		.tableswitch:checked + label {
-			background-color: #588157;
+			background-color: white;
+	    border: 1px solid green;
+	    border-bottom-width: 5px;
 		}
 		.tableswitch:checked + label:hover:before {
 			content: "off";
@@ -72,29 +75,43 @@ function getGlobalStyles(){
 	    background:none;
 	    padding:0;
 		}
+		
+		.floatingmessage {
+			position: fixed;
+	    top: 100px;
+	    right: 20px;
+	    padding: 20px;
+	    z-index: 10;
+	    border-radius: 5px;
+	    font-weight: bold;
+	    background: white;
+	    color: black;
+	    outline: 5px double #8BAE66;
+	    border-bottom: 5px solid #8BAE66;
+		}
 	`
 }
 
-// method to update body classes with tables in use and deactivated tables
-function updateTableStates(running){
-	const tablesUsed = running.map(r => r.querySelector(".table select").value).filter(t => t !== '0').map(t => `selected-${t}`).join(" ");
+function updateTableStates(tablesUsed){
+	const tablesUsedClasess = tablesUsed.map(t => `selected-${t}`).join(" ");
 	const deactivatedTables = [...document.querySelectorAll('.tableswitch:not(:checked)')].map(e => `deactivated-${e.value}`).join(" ");
 	
-	document.body.className = `${tablesUsed} ${deactivatedTables}`
+	document.body.className = `${tablesUsedClasess} ${deactivatedTables}`
 }
-
 function setupTables(){
 	const tableData = getTableData();
+	if(tableData.length === 0)
+	  return
 	createTablesStyles(tableData);
 	createTableToggles(tableData);
 }
 
-// retrieves table ids and names from a table selector
 function getTableData(){
-	return [...document.querySelector("tr td.table select").querySelectorAll("option")].filter(v => v.value !== '0').map(o => ({id: o.value, name: o.textContent}));
+	const tableSelect = document.querySelector("tr td.table select");
+	if(!tableSelect) return [];
+	return [...tableSelect.querySelectorAll("option")].filter(v => v.value !== '0').map(o => ({id: o.value, name: o.textContent}));
 }
 
-// create the styles for the table selector options (deactivated and in use)
 function createTablesStyles(tableData = []){
 	if(tableData.length === 0)
 	  return
@@ -107,24 +124,31 @@ function createTablesStyles(tableData = []){
   document.head.insertAdjacentHTML('beforeend', `<style>${cssstring}</style>`);
 }
 
-// table switches to turn tables on and off for a tournament
 function createTableToggles(tableData){
 	const html = createTablesHtml(tableData);
 	document.querySelector("#schedule").insertAdjacentHTML("beforebegin", html)
 }
 
+function updateMessage(canStartNumber){
+	const messageContainer = document.querySelector(".floatingmessage");
+	if(!messageContainer) return;
+	
+	messageContainer.innerHTML = canStartNumber > 0 ? `${canStartNumber} games can start` : `No games can start`;
+
+}
+
 function createTablesHtml(tables){
-	return `<h3>Tables used for the tournament</h3><div class="activetables">${tables.map(table => {
+	return `<div class="floatingmessage"></div><h3>Tables used for the tournament</h3><div class="activetables">${tables.map(table => {
 		return `<input class="tableswitch" type="checkbox" value="${table.id}" id="table${table.id}" checked/><label class="tournamenttable" for="table${table.id}">${table.name}</label>`
 	}).join("")}</div>`
 }
+
 function markAvailable(){
 	[...document.querySelectorAll(".canstart")].forEach(g => {
 		if(g.classList.contains("finished") || g.classList.contains("playing"))
 		g.classList.remove("canstart")
 	})
 	const tournamentFinished = document.querySelector(".resultSection");
-	const res = [];
 	if(tournamentFinished) return
 	
 	const allGames = [...document.querySelectorAll("table.score tr.match:not(.walkover)")];
@@ -140,7 +164,7 @@ function markAvailable(){
 		return acc
 	}, new Set());
 	
-	waiting.forEach(game => {
+	const canStart = waiting.filter(game => {
 		let playerA;
 		let playerB;
 		try {
@@ -150,13 +174,16 @@ function markAvailable(){
 			return;
 		}
 		if(!playersPlaying.has(playerA) && !playersPlaying.has(playerB)){
-			game.classList.add("canstart");
-			res.push(game);
+			return true;
 		}
+		return false;
 	});
 	
-	updateTableStates(running)
-	return res;
+	canStart.forEach(game => game.classList.add("canstart"));
+	const tablesUsed = running.map(r => r.querySelector(".table select").value).filter(t => t !== '0');
+	updateTableStates(tablesUsed);
+	const numberOfAvailableTables = [...document.querySelectorAll('.tableswitch:checked')].length;
+	updateMessage(Math.min(canStart.length, numberOfAvailableTables - tablesUsed.length));
 }
 setupTables();
 setInterval(markAvailable, 3000);
