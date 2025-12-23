@@ -179,11 +179,12 @@ function markAvailable(){
 		return false;
 	});
 	
+	console.count('one')
 	canStart.forEach(game => game.classList.add("canstart"));
 	const tablesUsed = running.map(r => r.querySelector(".table select").value).filter(t => t !== '0');
 	updateTableStates(tablesUsed);
-	const numberOfAvailableTables = [...document.querySelectorAll('.tableswitch:checked')].length;
-	updateMessage(Math.min(canStart.length, numberOfAvailableTables - tablesUsed.length));
+	const numberOfAvailableTables = [...document.querySelectorAll('.tableswitch:checked')].map(t => t.value).filter(t => !tablesUsed.includes(t)).length;
+	updateMessage(Math.min(canStart.length, numberOfAvailableTables));
 }
 setupTables();
 setInterval(markAvailable, 3000);
