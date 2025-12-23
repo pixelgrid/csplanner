@@ -72,25 +72,26 @@
 		    content: '  games can start';
 			}
 			
+			.floatingmessage.expand {
+		    width: 300px;
+		    height: 300px;
+		    border-radius: 100%;
+		    font-size: 100px;
+		    display: flex;
+		    justify-content: center;
+		    align-items: center;
+		    text-shadow: 2px 2px black, 3px 3px red, -2px -2px teal;
+			}
+			
+			.floatingmessage.expand:after {
+		    content: 'games can start';
+		    font-size: 14px;
+		    text-shadow: none;
+		    position: absolute;
+		    bottom: 40px;
+			}
+			
 			@media (min-width: 1000px){
-					.floatingmessage {
-				    width: 300px;
-				    height: 300px;
-				    border-radius: 100%;
-				    font-size: 100px;
-				    display: flex;
-				    justify-content: center;
-				    align-items: center;
-				    text-shadow: 2px 2px black, 3px 3px red, -2px -2px teal;
-					}
-					
-					.floatingmessage:after {
-				    content: 'games can start';
-				    font-size: 14px;
-				    text-shadow: none;
-				    position: absolute;
-				    bottom: 40px;
-					}
 					
 					.tableswitch:checked + label:hover:before {
 						content: "off";
@@ -168,7 +169,7 @@
 	}
 	
 	function createTablesHtml(tables){
-		return `<div class="floatingmessage"></div><h3>Tables used for the tournament</h3><div class="activetables">${tables.map(table => {
+		return `<div class="floatingmessage" onclick="this.classList.toggle('expand')"></div><h3>Tables used for the tournament</h3><div class="activetables">${tables.map(table => {
 			return `<input class="tableswitch" type="checkbox" value="${table.id}" id="table${table.id}" checked/><label class="tournamenttable" for="table${table.id}">${table.name}</label>`
 		}).join("")}</div>`
 	}
