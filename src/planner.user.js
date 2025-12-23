@@ -7,6 +7,7 @@
 		    display: flex;
 		    gap: 5px;
 		    flex-wrap: wrap;
+		    margin-bottom: 20px;
 			}
 			
 			.activetables .tournamenttable {
@@ -91,34 +92,56 @@
 		    bottom: 40px;
 			}
 			
+			.floatingmessage:hover:before {
+		    content: "click to expand";
+		    position: absolute;
+		    top: 120%;
+		    font-size: 12px;
+		    font-weight: normal;
+		    width: 100%;
+		    text-align: center;
+		    left: 0;
+			}
+			
+			.floatingmessage.expand:hover:before {
+		    content: "click to shrink";
+		    position: absolute;
+		    top: 105%;
+		    font-size: 12px;
+		    font-weight: normal;
+		    width: 100%;
+		    text-align: center;
+		    left: 0;
+		    text-shadow: none;
+			}
+			
 			@media (min-width: 1000px){
-					
-					.tableswitch:checked + label:hover:before {
-						content: "off";
-						position: absolute;
-						width: 100%;
-						height: 100%;
-						top: 0;
-						left: 0;
-						background: crimson;
-						color: white;
-						display: flex;
-						align-items: center;
-						justify-content: center;
-					}
-					.tableswitch:not(checked) + label:hover:before {
-						content: "on";
-						position: absolute;
-						width: 100%;
-						height: 100%;
-						top: 0;
-						left: 0;
-						background: #588157;
-						color: white;
-						display: flex;
-						align-items: center;
-						justify-content: center;
-					}
+				.tableswitch:checked + label:hover:before {
+					content: "off";
+					position: absolute;
+					width: 100%;
+					height: 100%;
+					top: 0;
+					left: 0;
+					background: crimson;
+					color: white;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+				}
+				.tableswitch:not(checked) + label:hover:before {
+					content: "on";
+					position: absolute;
+					width: 100%;
+					height: 100%;
+					top: 0;
+					left: 0;
+					background: #588157;
+					color: white;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+				}
 			}
 		`
 	}
@@ -169,7 +192,7 @@
 	}
 	
 	function createTablesHtml(tables){
-		return `<div class="floatingmessage" onclick="this.classList.toggle('expand')"></div><h3>Tables used for the tournament</h3><div class="activetables">${tables.map(table => {
+		return `<div class="floatingmessage" onclick="this.classList.toggle('expand')"></div><h2>Tables used for the tournament</h2><div class="activetables">${tables.map(table => {
 			return `<input class="tableswitch" type="checkbox" value="${table.id}" id="table${table.id}" checked/><label class="tournamenttable" for="table${table.id}">${table.name}</label>`
 		}).join("")}</div>`
 	}
