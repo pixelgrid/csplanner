@@ -13,4 +13,4 @@ Once in a cuescore tournament page, you type the name of the bookmark created ab
 2. A table on/off section will be showed (deactivating a table will show it as red on the table selector)
 3. the table selector shows the same info as in the windows desktop version (tables in use are highlighted differently)
 
-![showcase of features](image.png)
+<img width="1317" height="868" alt="image" src="https://github.com/user-attachments/assets/e0d8c1f1-d90c-4b3f-9343-9b922d3f0614" />
