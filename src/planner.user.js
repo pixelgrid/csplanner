@@ -130,7 +130,6 @@
 			}
 			
 			@media (min-width: 1000px){
-					
 					.tableswitch:checked + label:hover:before {
 						content: "off";
 						position: absolute;
@@ -191,7 +190,7 @@
 	}
 	
 	function getTableData(venueData){
-		return venueData.tables.sort((a,b) => a.name - b.name).map(t => ({id: t.tableId, name: `Table ${t.name}`}))
+		return venueData.tables.sort((a,b) => a.name - b.name).map(t => ({id: String(t.tableId), name: `Table ${t.name}`}))
 	}
 	
 	function createTablesStyles(tableData = []){
@@ -220,7 +219,7 @@
 	
 	function createTablesHtml(tables, deactivatedTables){
 		return `<div class="floatingmessage" onclick="this.classList.toggle('expand')"></div><h2>Tables used for the tournament</h2><div class="activetables">${tables.map(table => {
-			return `<input class="tableswitch" type="checkbox" value="${table.id}" id="table${table.id}" ${deactivatedTables.includes(String(table.id)) ? '' : 'checked'}/><label class="tournamenttable" for="table${table.id}">${table.name}</label>`
+			return `<input class="tableswitch" type="checkbox" value="${table.id}" id="table${table.id}" ${deactivatedTables.includes(table.id) ? '' : 'checked'}/><label class="tournamenttable" for="table${table.id}">${table.name}</label>`
 		}).join("")}</div>`
 	}
 	
@@ -230,9 +229,6 @@
 	
 	function markAvailable(){
 		fetchTournamentData(TOURNAMENT_ID).then(tournamentData => {
-			[...document.querySelectorAll(".canstart")].forEach(g => {
-				g.classList.remove("canstart")
-			})
 			const tournamentFinished = tournamentData.statusCode === 2; // status === 'Finished'
 			if(tournamentFinished) return clearInterval(window.__TABLE_UX_INTERVAL__);
 			
@@ -260,9 +256,11 @@
 				}
 				return false;
 			});
-			
+			[...document.querySelectorAll(".canstart")].forEach(g => {
+				g.classList.remove("canstart")
+			})
 			canStart.forEach(game => document.querySelector("tr#match-"+game.matchId).classList.add("canstart"));
-			const tablesUsed = running.map(g => g.table.tableId);
+			const tablesUsed = running.map(g => g.table.tableId).map(String);
 			updateTableStates(tablesUsed);
 			const numberOfAvailableTables = [...document.querySelectorAll('.tableswitch:checked')].map(t => t.value).filter(t => !tablesUsed.includes(t)).length;
 			updateMessage(Math.min(canStart.length, numberOfAvailableTables));
