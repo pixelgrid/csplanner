@@ -1,5 +1,6 @@
 (()=>{
 	document.head.insertAdjacentHTML('beforeend', `<style data-ux-bookmarklet>${getGlobalStyles()}</style>`);
+	const venueId = document.querySelector(".titleSection .venue a")?.href.split("/").at(-1);
 	
 	function getGlobalStyles(){
 		return `
@@ -82,6 +83,10 @@
 		    justify-content: center;
 		    align-items: center;
 		    text-shadow: 2px 2px black, 3px 3px red, -2px -2px teal;
+		    top: 50%;
+				left: 50%;
+				transform: translateX(-50%) translateY(-50%);
+				box-shadow: 0 0 0 5000px rgba(0, 0, 0, .7);
 			}
 			
 			.floatingmessage.expand:after {
@@ -144,23 +149,17 @@
 						justify-content: center;
 					}
 			}
-			
-			@media (max-width: 500px){
-				.floatingmessage.expand {
-					top: 50%;
-					left: 50%;
-					transform: translateX(-50%) translateY(-50%);
-					box-shadow: 0 0 0 2000px rgba(0, 0, 0, .7);
-				}
-			}
 		`
 	}
 	
 	function updateTableStates(tablesUsed){
-		const tablesUsedClasess = tablesUsed.map(t => `selected-${t}`).join(" ");
-		const deactivatedTables = [...document.querySelectorAll('.tableswitch:not(:checked)')].map(e => `deactivated-${e.value}`).join(" ");
+		const tablesUsedClasses = tablesUsed.map(t => `selected-${t}`).join(" ");
+		const deactivatedTables = [...document.querySelectorAll('.tableswitch:not(:checked)')].map(e => e.value);
+		const deactivatedTablesClasses = deactivatedTables.map(id => `deactivated-${id}`).join(" ");
+
+		document.body.className = `${tablesUsedClasses} ${deactivatedTablesClasses}`;
 		
-		document.body.className = `${tablesUsedClasess} ${deactivatedTables}`
+		localStorage.setItem("deactivated-tables-" + venueId, deactivatedTables.join())
 	}
 	function setupTables(){
 		const tableData = getTableData();
@@ -189,7 +188,8 @@
 	}
 	
 	function createTableToggles(tableData){
-		const html = createTablesHtml(tableData);
+		const deactivatedTables = (localStorage.getItem("deactivated-tables-" + venueId) || "").split(",");
+		const html = createTablesHtml(tableData, deactivatedTables);
 		document.querySelector("#schedule").insertAdjacentHTML("beforebegin", html)
 	}
 	
@@ -197,13 +197,11 @@
 		const messageContainer = document.querySelector(".floatingmessage");
 		if(!messageContainer) return;
 		messageContainer.innerHTML = canStartNumber;
-		//messageContainer.innerHTML = canStartNumber > 0 ? `${canStartNumber} game${canStartNumber > 1 ? 's' : ''} can start` : `No games can start`;
-	
 	}
 	
-	function createTablesHtml(tables){
+	function createTablesHtml(tables, deactivatedTables){
 		return `<div class="floatingmessage" onclick="this.classList.toggle('expand')"></div><h2>Tables used for the tournament</h2><div class="activetables">${tables.map(table => {
-			return `<input class="tableswitch" type="checkbox" value="${table.id}" id="table${table.id}" checked/><label class="tournamenttable" for="table${table.id}">${table.name}</label>`
+			return `<input class="tableswitch" type="checkbox" value="${table.id}" id="table${table.id}" ${deactivatedTables.includes(table.id) ? '' : 'checked'}/><label class="tournamenttable" for="table${table.id}">${table.name}</label>`
 		}).join("")}</div>`
 	}
 	
