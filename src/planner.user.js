@@ -1,8 +1,16 @@
 (()=>{
+	if(!location.pathname.startsWith("/tournament"))
+	  return;
 	document.head.insertAdjacentHTML('beforeend', `<style data-ux-bookmarklet>${getGlobalStyles()}</style>`);
-	const venueId = document.querySelector(".titleSection .venue a")?.href.split("/").at(-1);
-	let deactivatedTablesSettings = localStorage.getItem("deactivated-tables-" + venueId);
-	
+	const VENUE_ID = document.querySelector(".titleSection .venue a")?.href.split("/").at(-1);
+	let deactivatedTablesSettings = localStorage.getItem("deactivated-tables-" + VENUE_ID) || "";
+	const TOURNAMENT_ID = location.pathname.split("/").at(-1);
+	const WALKOVER_PLAYER_ID = 1000615;
+	const GAME_STATUS = {
+		WAITING: 0,
+		PLAYING: 1,
+		FINISHED: 2
+	};
 	function getGlobalStyles(){
 		return `
 			.activetables {
@@ -153,6 +161,16 @@
 		`
 	}
 	
+	async function fetchVenueData(venueId){
+		const data = await fetch("https://api.cuescore.com/venue/?id=" + venueId);
+		return await data.json();
+	}
+	
+	async function fetchTournamentData(tournamentId){
+		const data = await fetch("https://api.cuescore.com/tournament/?id=" + tournamentId);
+		return await data.json();
+	}
+	
 	function updateTableStates(tablesUsed){
 		const tablesUsedClasses = tablesUsed.map(t => `selected-${t}`).join(" ");
 		const deactivatedTables = [...document.querySelectorAll('.tableswitch:not(:checked)')].map(e => e.value);
@@ -160,22 +178,20 @@
 
 		document.body.className = `${tablesUsedClasses} ${deactivatedTablesClasses}`;
 		if(deactivatedTablesSettings !== deactivatedTables.join()){
-			localStorage.setItem("deactivated-tables-" + venueId, deactivatedTables.join());
+			localStorage.setItem("deactivated-tables-" + VENUE_ID, deactivatedTables.join());
 			deactivatedTablesSettings = deactivatedTables.join();
 		}
 	}
-	function setupTables(){
-		const tableData = getTableData();
+	function setupTables(venueData){
+		const tableData = getTableData(venueData);
 		if(tableData.length === 0)
 		  return
 		createTablesStyles(tableData);
 		createTableToggles(tableData);
 	}
 	
-	function getTableData(){
-		const tableSelect = document.querySelector("tr td.table select");
-		if(!tableSelect) return [];
-		return [...tableSelect.querySelectorAll("option")].filter(v => v.value !== '0').map(o => ({id: o.value, name: o.textContent}));
+	function getTableData(venueData){
+		return venueData.tables.sort((a,b) => a.name - b.name).map(t => ({id: t.tableId, name: `Table ${t.name}`}))
 	}
 	
 	function createTablesStyles(tableData = []){
@@ -204,55 +220,58 @@
 	
 	function createTablesHtml(tables, deactivatedTables){
 		return `<div class="floatingmessage" onclick="this.classList.toggle('expand')"></div><h2>Tables used for the tournament</h2><div class="activetables">${tables.map(table => {
-			return `<input class="tableswitch" type="checkbox" value="${table.id}" id="table${table.id}" ${deactivatedTables.includes(table.id) ? '' : 'checked'}/><label class="tournamenttable" for="table${table.id}">${table.name}</label>`
+			return `<input class="tableswitch" type="checkbox" value="${table.id}" id="table${table.id}" ${deactivatedTables.includes(String(table.id)) ? '' : 'checked'}/><label class="tournamenttable" for="table${table.id}">${table.name}</label>`
 		}).join("")}</div>`
 	}
 	
-	function markAvailable(){
-		[...document.querySelectorAll(".canstart")].forEach(g => {
-			if(g.classList.contains("finished") || g.classList.contains("playing"))
-			g.classList.remove("canstart")
-		})
-		const tournamentFinished = document.querySelector(".resultSection");
-		if(tournamentFinished) return
-		
-		const allGames = [...document.querySelectorAll("table.score tr.match:not(.walkover)")];
-		const running = allGames.filter(game => game.classList.contains("playing"));
-		const waiting = allGames.filter(game => game.classList.contains("waiting") && !game.querySelector(".name .upcoming"))
-		
-		const playersPlaying = running.reduce((acc, curr) => {
-			const playerA = curr.querySelector(".playerA .name").textContent;
-			const playerB = curr.querySelector(".playerB .name").textContent;
-			
-			acc.add(playerA);
-			acc.add(playerB);
-			return acc
-		}, new Set());
-		
-		const canStart = waiting.filter(game => {
-			let playerA;
-			let playerB;
-			try {
-			  playerA = game.querySelector(".playerA .name").textContent;
-			  playerB = game.querySelector(".playerB .name").textContent;
-			} catch(e){
-				return;
-			}
-			if(!playersPlaying.has(playerA) && !playersPlaying.has(playerB)){
-				return true;
-			}
-			return false;
-		});
-		
-		canStart.forEach(game => game.classList.add("canstart"));
-		const tablesUsed = running.map(r => r.querySelector(".table select").value).filter(t => t !== '0');
-		updateTableStates(tablesUsed);
-		const numberOfAvailableTables = [...document.querySelectorAll('.tableswitch:checked')].map(t => t.value).filter(t => !tablesUsed.includes(t)).length;
-		updateMessage(Math.min(canStart.length, numberOfAvailableTables));
+	function validPlayerId(id){
+		return id !== 0 && id !== WALKOVER_PLAYER_ID;
 	}
-	setupTables();
+	
+	function markAvailable(){
+		fetchTournamentData(TOURNAMENT_ID).then(tournamentData => {
+			[...document.querySelectorAll(".canstart")].forEach(g => {
+				g.classList.remove("canstart")
+			})
+			const tournamentFinished = tournamentData.statusCode === 2; // status === 'Finished'
+			if(tournamentFinished) return clearInterval(window.__TABLE_UX_INTERVAL__);
+			
+			const running = tournamentData.matches.filter(m => m.matchstatusCode === GAME_STATUS.PLAYING);
+			const waiting = tournamentData.matches.filter(m => m.matchstatusCode === GAME_STATUS.WAITING).filter(m => {
+				const playerAId = m.playerA.playerId;
+				const playerBId = m.playerB.playerId;
+				return validPlayerId(playerAId) && validPlayerId(playerBId);
+			})
+			
+			const playersPlaying = running.reduce((acc, curr) => {
+				const playerAId = curr.playerA.playerId;
+				const playerBId = curr.playerB.playerId;
+				
+				acc.add(playerAId);
+				acc.add(playerBId);
+				return acc
+			}, new Set());
+			
+			const canStart = waiting.filter(game => {
+				const playerAId = game.playerA.playerId;
+				const playerBId = game.playerB.playerId;
+				if(!playersPlaying.has(playerAId) && !playersPlaying.has(playerBId)){
+					return true;
+				}
+				return false;
+			});
+			
+			canStart.forEach(game => document.querySelector("tr#match-"+game.matchId).classList.add("canstart"));
+			const tablesUsed = running.map(g => g.table.tableId);
+			updateTableStates(tablesUsed);
+			const numberOfAvailableTables = [...document.querySelectorAll('.tableswitch:checked')].map(t => t.value).filter(t => !tablesUsed.includes(t)).length;
+			updateMessage(Math.min(canStart.length, numberOfAvailableTables));
+		})
+	}
 	markAvailable();
 	if (!window.__TABLE_UX_INTERVAL__) {
 	  window.__TABLE_UX_INTERVAL__ = setInterval(markAvailable, 5000);
 	}
+	
+	VENUE_ID && fetchVenueData(VENUE_ID).then(setupTables);
 })()
