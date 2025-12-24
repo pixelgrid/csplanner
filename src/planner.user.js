@@ -1,5 +1,9 @@
 (() => {
-	if (!location.pathname.startsWith('/tournament')) return;
+	if (
+		!location.pathname.startsWith('/tournament') ||
+		document.querySelector('#resultSection')
+	)
+		return;
 	document.head.insertAdjacentHTML(
 		'beforeend',
 		`<style data-ux-bookmarklet>${getGlobalStyles()}</style>`
