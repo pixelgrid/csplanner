@@ -4,7 +4,7 @@
 // @version      2025-12-24
 // @description  Adds visual helpers for cuescore tournament managers
 // @author       Elton Kamami
-// @match        https://www.cuescore.com/tournament/*
+// @match        cuescore.com/tournament/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // @grant        none
 // ==/UserScript==
