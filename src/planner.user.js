@@ -1,4 +1,17 @@
+// ==UserScript==
+// @name         CS Planner
+// @namespace    http://tampermonkey.net/
+// @version      2025-12-24
+// @description  Adds visual helpers for cuescore tournament managers
+// @author       Elton Kamami
+// @match        https://www.cuescore.com/tournament/*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
+// @grant        none
+// ==/UserScript==
+
+
 (() => {
+	'use strict';
 	if (
 		!location.pathname.startsWith('/tournament') ||
 		document.querySelector('#resultSection')
