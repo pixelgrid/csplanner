@@ -1,6 +1,7 @@
 (()=>{
 	document.head.insertAdjacentHTML('beforeend', `<style data-ux-bookmarklet>${getGlobalStyles()}</style>`);
 	const venueId = document.querySelector(".titleSection .venue a")?.href.split("/").at(-1);
+	let deactivatedTablesSettings = localStorage.getItem("deactivated-tables-" + venueId);
 	
 	function getGlobalStyles(){
 		return `
@@ -158,8 +159,10 @@
 		const deactivatedTablesClasses = deactivatedTables.map(id => `deactivated-${id}`).join(" ");
 
 		document.body.className = `${tablesUsedClasses} ${deactivatedTablesClasses}`;
-		
-		localStorage.setItem("deactivated-tables-" + venueId, deactivatedTables.join())
+		if(deactivatedTablesSettings !== deactivatedTables.join()){
+			localStorage.setItem("deactivated-tables-" + venueId, deactivatedTables.join());
+			deactivatedTablesSettings = deactivatedTables.join();
+		}
 	}
 	function setupTables(){
 		const tableData = getTableData();
@@ -188,7 +191,7 @@
 	}
 	
 	function createTableToggles(tableData){
-		const deactivatedTables = (localStorage.getItem("deactivated-tables-" + venueId) || "").split(",");
+		const deactivatedTables = deactivatedTablesSettings.split(",");
 		const html = createTablesHtml(tableData, deactivatedTables);
 		document.querySelector("#schedule").insertAdjacentHTML("beforebegin", html)
 	}
