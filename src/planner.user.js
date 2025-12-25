@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CS Planner
 // @namespace    http://tampermonkey.net/
-// @version      2025-12-24
+// @version      v1.0.0
 // @description  Adds visual helpers for cuescore tournament managers
 // @author       Elton Kamami
 // @match        cuescore.com/tournament/*
@@ -14,9 +14,11 @@
 	'use strict';
 	if (
 		!location.pathname.startsWith('/tournament') ||
-		document.querySelector('#resultSection')
-	)
+		document.querySelector('#resultSection') ||
+        !document.querySelector("#scoreContainer")
+	){
 		return;
+    }
 	document.head.insertAdjacentHTML(
 		'beforeend',
 		`<style data-ux-bookmarklet>${getGlobalStyles()}</style>`
@@ -36,150 +38,176 @@
 	};
 	function getGlobalStyles() {
 		return `
-			.activetables {
-		    display: flex;
-		    gap: 5px;
-		    flex-wrap: wrap;
-		    margin-bottom: 20px;
-			}
-			
-			.activetables .tournamenttable {
-		    background: white;
-		    color: black;
-		    font-size: 14px;
-		    padding: 5px;
-		    border-radius: 4px;
-		    cursor: pointer;
-		    position: relative;
-		    border: 1px solid red;
-		    border-bottom-width: 5px;
-			}
-			
-			.tableswitch:checked + label {
-				background-color: white;
-		    border: 1px solid green;
-		    border-bottom-width: 5px;
-			}
-			
-			.activetables input {
-				display: none;
-			}
-			table.score select.tablePicker option.tableInUse{
-				background-color:white;
-				color: black;
-			}
-			table.score select.tablePicker option{
-			  font-size:14px;
-			  width:150px;
-			  margin:5px;
-			  padding:5px
-			}
-			.canstart {
-			  background: rgb(0 128 0 / 70%)!important;
-			  color: white!important;
-			}
-			select.tablePicker,
-			select.tablePicker::picker(select) {
-			  appearance: base-select;
-			}
-			select.tablePicker{
-		    background:none;
-		    padding:0;
-		    width: 80px;
-			}
-			
-			.floatingmessage {
-				position: fixed;
-		    top: 100px;
-		    right: 20px;
-		    padding: 20px;
-		    z-index: 10;
-		    border-radius: 5px;
-		    font-weight: bold;
-		    background: white;
-		    color: black;
-		    outline: 5px double #8BAE66;
-		    border-bottom: 5px solid #8BAE66;
-			}
-			
-			.floatingmessage:after {
-		    content: '  games can start';
-			}
-			
-			.floatingmessage.expand {
-		    width: 300px;
-		    height: 300px;
-		    border-radius: 100%;
-		    font-size: 100px;
-		    display: flex;
-		    justify-content: center;
-		    align-items: center;
-		    text-shadow: 2px 2px black, 3px 3px red, -2px -2px teal;
-		    top: 50%;
-				left: 50%;
-				transform: translateX(-50%) translateY(-50%);
-				box-shadow: 0 0 0 5000px rgba(0, 0, 0, .7);
-			}
-			
-			.floatingmessage.expand:after {
-		    content: 'games can start';
-		    font-size: 14px;
-		    text-shadow: none;
-		    position: absolute;
-		    bottom: 40px;
-			}
-			
-			.floatingmessage:hover:before {
-		    content: "click to expand";
-		    position: absolute;
-		    top: 120%;
-		    font-size: 12px;
-		    font-weight: normal;
-		    width: 100%;
-		    text-align: center;
-		    left: 0;
-			}
-			
-			.floatingmessage.expand:hover:before {
-		    content: "click to shrink";
-		    position: absolute;
-		    top: 105%;
-		    font-size: 12px;
-		    font-weight: normal;
-		    width: 100%;
-		    text-align: center;
-		    left: 0;
-		    text-shadow: none;
-			}
-			
-			@media (min-width: 1000px){
-					.tableswitch:checked + label:hover:before {
-						content: "off";
-						position: absolute;
-						width: 100%;
-						height: 100%;
-						top: 0;
-						left: 0;
-						background: crimson;
-						color: white;
-						display: flex;
-						align-items: center;
-						justify-content: center;
-					}
-					.tableswitch:not(checked) + label:hover:before {
-						content: "on";
-						position: absolute;
-						width: 100%;
-						height: 100%;
-						top: 0;
-						left: 0;
-						background: #588157;
-						color: white;
-						display: flex;
-						align-items: center;
-						justify-content: center;
-					}
-			}
+.activetables {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.activetables .tournamenttable {
+  background: white;
+  color: black;
+  font-size: 14px;
+  padding: 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  border: 1px solid red;
+  border-bottom-width: 5px;
+}
+
+.tableswitch:checked+label {
+  background-color: white;
+  border: 1px solid green;
+  border-bottom-width: 5px;
+}
+
+.activetables input {
+  display: none;
+}
+
+table.score select.tablePicker option.tableInUse {
+  background-color: white;
+  color: black;
+}
+
+table.score select.tablePicker option {
+  font-size: 14px;
+  width: 150px;
+  margin: 5px;
+  padding: 5px
+}
+
+.canstart {
+  background: rgb(0 128 0 / 70%) !important;
+  color: white !important;
+}
+
+select.tablePicker {
+  background: none;
+  padding: 0;
+  width: 80px;
+  pointer-events: none;
+}
+
+.floatingmessage {
+  position: fixed;
+  top: 100px;
+  right: 20px;
+  padding: 20px;
+  z-index: 10;
+  border-radius: 5px;
+  font-weight: bold;
+  background: white;
+  color: black;
+  outline: 5px double #8BAE66;
+  border-bottom: 5px solid #8BAE66;
+}
+
+.floatingmessage:after {
+  content: '  games can start';
+}
+
+.floatingmessage.expand {
+  width: 300px;
+  height: 300px;
+  border-radius: 100%;
+  font-size: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-shadow: 2px 2px black, 3px 3px red, -2px -2px teal;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  box-shadow: 0 0 0 5000px rgba(0, 0, 0, .7);
+}
+
+.floatingmessage.expand:after {
+  content: 'games can start';
+  font-size: 14px;
+  text-shadow: none;
+  position: absolute;
+  bottom: 40px;
+}
+
+.floatingmessage:hover:before {
+  content: "click to expand";
+  position: absolute;
+  top: 120%;
+  font-size: 12px;
+  font-weight: normal;
+  width: 100%;
+  text-align: center;
+  left: 0;
+}
+
+.floatingmessage.expand:hover:before {
+  content: "click to shrink";
+  position: absolute;
+  top: 105%;
+  font-size: 12px;
+  font-weight: normal;
+  width: 100%;
+  text-align: center;
+  left: 0;
+  text-shadow: none;
+}
+.custom-table-select div:hover {
+    background: lightgray;
+    cursor: pointer;
+}
+
+.custom-table-select div {
+    padding: 5px;
+    margin-bottom: 5px;
+}
+.custom-table-select {
+    width: 200px;
+    border: 1px solid;
+    padding: 10px;
+    position: fixed;
+    background: white;
+    max-height: 400px;
+    overflow: auto;
+    position-anchor: --sel;
+    top: anchor(top);
+    right: anchor(right);
+    display: none;
+}
+.custom-table-select.show{
+    display: block;
+}
+@media (min-width: 1000px) {
+  .tableswitch:checked+label:hover:before {
+    content: "off";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: crimson;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tableswitch:not(checked)+label:hover:before {
+    content: "on";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: #588157;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
 		`;
 	}
 
@@ -218,6 +246,7 @@
 		if (tableData.length === 0) return;
 		createTablesStyles(tableData);
 		createTableToggles(tableData);
+        createCustomTableSelect(tableData);
 	}
 
 	function getTableData(venueData) {
@@ -231,8 +260,8 @@
 
 		let cssstring = '';
 		for (let table of tableData) {
-			cssstring += `.selected-${table.id} option[value="${table.id}"]{background: #1E81AF!important;color:white!important;}`;
-			cssstring += `.deactivated-${table.id} option[value="${table.id}"]{background: red!important;color:white!important;}`;
+			cssstring += `.selected-${table.id} div[data-tableid="${table.id}"]{background: #1E81AF!important;color:white!important;}`;
+			cssstring += `.deactivated-${table.id} div[data-tableid="${table.id}"]{background: red!important;color:white!important;}`;
 		}
 		document.head.insertAdjacentHTML(
 			'beforeend',
@@ -245,6 +274,39 @@
 		const html = createTablesHtml(tableData, deactivatedTables);
 		document.querySelector('#schedule').insertAdjacentHTML('beforebegin', html);
 	}
+
+    function createCustomTableSelect(tableData){
+        let lastSelected = null;
+        let customSelect = null;
+        document.body.insertAdjacentHTML("beforeend", `<div class="custom-table-select">
+           <div data-tableid="0">Table</div>
+           ${tableData.map(({id, name}) => `<div data-tableid="${id}">${name}</div>`).join("")}
+        </div>`);
+        document.querySelector("#scoreContainer").addEventListener("click", e => {
+            if(!e.target.matches("td.table")){
+                return;
+            }
+            e.stopPropagation();
+            if(lastSelected) lastSelected.style.anchorName = "";
+            lastSelected = e.target;
+            lastSelected.style.anchorName = "--sel";
+            customSelect.classList.add("show");
+        });
+        customSelect = document.querySelector(".custom-table-select");
+        customSelect.addEventListener("click", e => {
+          if(!e.target.matches("[data-tableid]")) {
+              return;
+          }
+          const selectedTableId = e.target.dataset.tableid;
+          customSelect.classList.remove("show");
+          lastSelected.querySelector("select").value = selectedTableId;
+        })
+        document.addEventListener("click", e => {
+            if(!e.target.matches(".custom-table-select") && customSelect.classList.contains("show")){
+               customSelect.classList.remove("show");
+            }
+        })
+    }
 
 	function updateMessage(canStartNumber) {
 		const messageContainer = document.querySelector('.floatingmessage');
@@ -300,8 +362,9 @@
 	function markAvailable() {
 		fetchTournamentData(TOURNAMENT_ID).then((tournamentData) => {
 			const tournamentFinished = tournamentData.statusCode === 2; // status === 'Finished'
-			if (tournamentFinished)
+			if (tournamentFinished){
 				return clearInterval(window.__TABLE_UX_INTERVAL__);
+            }
 
 			const running = tournamentData.matches.filter(
 				(m) => m.matchstatusCode === GAME_STATUS.PLAYING
