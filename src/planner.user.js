@@ -337,7 +337,7 @@ select.tablePicker {
 	}
     function anchorElement(anchorEl, targetEl, options = {}) {
         const {
-            placement = "bottom-start",
+            placement = "bottom-end",
             offsetX = 0,
             offsetY = 0
         } = options;
