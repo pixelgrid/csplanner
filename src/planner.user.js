@@ -11,34 +11,33 @@
 
 
 (() => {
-    'use strict';
-    if (
-      !location.pathname.startsWith('/tournament') ||
-      document.querySelector('#resultSection') ||
-      !document.querySelector("#scoreContainer")
-    ) {
-      return;
+	'use strict';
+	if (
+		!location.pathname.startsWith('/tournament') ||
+		document.querySelector('#resultSection') ||
+        !document.querySelector("#scoreContainer")
+	){
+		return;
     }
-    document.head.insertAdjacentHTML(
-      'beforeend',
-      `<style data-ux-bookmarklet>${getGlobalStyles()}</style>`
-    );
-    const VENUE_ID = document
-      .querySelector('.titleSection .venue a')
-      ?.href.split('/')
-      .at(-1);
-    let deactivatedTablesSettings =
-      localStorage.getItem('deactivated-tables-' + VENUE_ID) || '';
-    const TOURNAMENT_ID = location.pathname.split('/').at(-1);
-    const WALKOVER_PLAYER_ID = 1000615;
-    const GAME_STATUS = {
-      WAITING: 0,
-      PLAYING: 1,
-      FINISHED: 2,
-    };
-
-    function getGlobalStyles() {
-      return `
+	document.head.insertAdjacentHTML(
+		'beforeend',
+		`<style data-ux-bookmarklet>${getGlobalStyles()}</style>`
+	);
+	const VENUE_ID = document
+		.querySelector('.titleSection .venue a')
+		?.href.split('/')
+		.at(-1);
+	let deactivatedTablesSettings =
+		localStorage.getItem('deactivated-tables-' + VENUE_ID) || '';
+	const TOURNAMENT_ID = location.pathname.split('/').at(-1);
+	const WALKOVER_PLAYER_ID = 1000615;
+	const GAME_STATUS = {
+		WAITING: 0,
+		PLAYING: 1,
+		FINISHED: 2,
+	};
+	function getGlobalStyles() {
+		return `
 .activetables {
   display: flex;
   gap: 5px;
@@ -207,145 +206,138 @@ select.tablePicker {
   }
 }
 		`;
-    }
+	}
 
-    async function fetchVenueData(venueId) {
-      const data = await fetch('https://api.cuescore.com/venue/?id=' + venueId);
-      return await data.json();
-    }
+	async function fetchVenueData(venueId) {
+		const data = await fetch('https://api.cuescore.com/venue/?id=' + venueId);
+		return await data.json();
+	}
 
-    async function fetchTournamentData(tournamentId) {
-      const data = await fetch(
-        'https://api.cuescore.com/tournament/?id=' + tournamentId
-      );
-      return await data.json();
-    }
+	async function fetchTournamentData(tournamentId) {
+		const data = await fetch(
+			'https://api.cuescore.com/tournament/?id=' + tournamentId
+		);
+		return await data.json();
+	}
 
-    function updateTableStates(tablesUsed) {
-      const tablesUsedClasses = tablesUsed.map((t) => `selected-${t}`).join(' ');
-      const deactivatedTables = [
-        ...document.querySelectorAll('.tableswitch:not(:checked)'),
-      ].map((e) => e.value);
-      const deactivatedTablesClasses = deactivatedTables
-        .map((id) => `deactivated-${id}`)
-        .join(' ');
+	function updateTableStates(tablesUsed) {
+		const tablesUsedClasses = tablesUsed.map((t) => `selected-${t}`).join(' ');
+		const deactivatedTables = [
+			...document.querySelectorAll('.tableswitch:not(:checked)'),
+		].map((e) => e.value);
+		const deactivatedTablesClasses = deactivatedTables
+			.map((id) => `deactivated-${id}`)
+			.join(' ');
 
-      document.body.className = `${tablesUsedClasses} ${deactivatedTablesClasses}`;
-      if (deactivatedTablesSettings !== deactivatedTables.join()) {
-        localStorage.setItem(
-          'deactivated-tables-' + VENUE_ID,
-          deactivatedTables.join()
-        );
-        deactivatedTablesSettings = deactivatedTables.join();
-      }
-    }
+		document.body.className = `${tablesUsedClasses} ${deactivatedTablesClasses}`;
+		if (deactivatedTablesSettings !== deactivatedTables.join()) {
+			localStorage.setItem(
+				'deactivated-tables-' + VENUE_ID,
+				deactivatedTables.join()
+			);
+			deactivatedTablesSettings = deactivatedTables.join();
+		}
+	}
+	function setupTables(venueData) {
+		const tableData = getTableData(venueData);
+		if (tableData.length === 0) return;
+		createTablesStyles(tableData);
+		createTableToggles(tableData);
+        createCustomTableSelect(tableData);
+	}
 
-    function setupTables(venueData) {
-      const tableData = getTableData(venueData);
-      if (tableData.length === 0) return;
-      createTablesStyles(tableData);
-      createTableToggles(tableData);
-      createCustomTableSelect(tableData);
-    }
+	function getTableData(venueData) {
+		return venueData.tables
+			.sort((a, b) => a.name - b.name)
+			.map((t) => ({ id: String(t.tableId), name: `Table ${t.name}` }));
+	}
 
-    function getTableData(venueData) {
-      return venueData.tables
-        .sort((a, b) => a.name - b.name)
-        .map((t) => ({
-          id: String(t.tableId),
-          name: `Table ${t.name}`
-        }));
-    }
+	function createTablesStyles(tableData = []) {
+		if (tableData.length === 0) return;
 
-    function createTablesStyles(tableData = []) {
-      if (tableData.length === 0) return;
+		let cssstring = '';
+		for (let table of tableData) {
+			cssstring += `.selected-${table.id} div[data-tableid="${table.id}"]{background: #1E81AF!important;color:white!important;}`;
+			cssstring += `.deactivated-${table.id} div[data-tableid="${table.id}"]{background: red!important;color:white!important;}`;
+		}
+		document.head.insertAdjacentHTML(
+			'beforeend',
+			`<style>${cssstring}</style>`
+		);
+	}
 
-      let cssstring = '';
-      for (let table of tableData) {
-        cssstring += `.selected-${table.id} div[data-tableid="${table.id}"]{background: #1E81AF!important;color:white!important;}`;
-        cssstring += `.deactivated-${table.id} div[data-tableid="${table.id}"]{background: red!important;color:white!important;}`;
-      }
-      document.head.insertAdjacentHTML(
-        'beforeend',
-        `<style>${cssstring}</style>`
-      );
-    }
+	function createTableToggles(tableData) {
+		const deactivatedTables = deactivatedTablesSettings.split(',');
+		const html = createTablesHtml(tableData, deactivatedTables);
+		document.querySelector('#schedule').insertAdjacentHTML('beforebegin', html);
+	}
 
-    function createTableToggles(tableData) {
-      const deactivatedTables = deactivatedTablesSettings.split(',');
-      const html = createTablesHtml(tableData, deactivatedTables);
-      document.querySelector('#schedule').insertAdjacentHTML('beforebegin', html);
-    }
-
-    function createCustomTableSelect(tableData) {
-      let lastSelected = null;
-      let customSelect = null;
-      document.body.insertAdjacentHTML("beforeend", `<div class="custom-table-select">
+    function createCustomTableSelect(tableData){
+        let lastSelected = null;
+        let customSelect = null;
+        document.body.insertAdjacentHTML("beforeend", `<div class="custom-table-select">
            <div data-tableid="0">Table</div>
-           ${tableData.map(({id, name}) => ` < div data - tableid = "${id}" > $ {
-          name
-        } < /div>`).join("")} < /
-        div > `);
-                document.querySelector("#scoreContainer").addEventListener("click", e => {
-                    if (!e.target.matches("td.table")) {
-                        return;
-                    }
-                    e.stopPropagation();
-                    lastSelected = e.target;
-                    customSelect.classList.add("show");
-                    anchorElement(e.target, customSelect);
-                }); customSelect = document.querySelector(".custom-table-select"); customSelect.addEventListener("click", e => {
-                    if (!e.target.matches("[data-tableid]")) {
-                        return;
-                    }
-                    const selectedTableId = e.target.dataset.tableid;
-                    customSelect.classList.remove("show");
-                    lastSelected.querySelector("select").value = selectedTableId;
-                }) document.addEventListener("click", e => {
-                    if (!e.target.matches(".custom-table-select") && customSelect.classList.contains("show")) {
-                        customSelect.classList.remove("show");
-                    }
-                })
+           ${tableData.map(({id, name}) => `<div data-tableid="${id}">${name}</div>`).join("")}
+        </div>`);
+        document.querySelector("#scoreContainer").addEventListener("click", e => {
+            if(!e.target.matches("td.table")){
+                return;
             }
-
-            function updateMessage(canStartNumber) {
-                const messageContainer = document.querySelector('.floatingmessage');
-                if (!messageContainer) return;
-                messageContainer.innerHTML = canStartNumber;
-            }
-
-            function createTablesHtml(tables, deactivatedTables) {
-                return ` < div class = "floatingmessage"
-        onclick = "this.classList.toggle('expand')" > < /div><h2>Tables used for the tournament</h2 > < div class = "activetables" > $ {
-          tables
-            .map((table) => {
-              return `<input class="tableswitch" type="checkbox" value="${table.id}" id="table${table.id}" ${deactivatedTables.includes(table.id) ? '' : 'checked'}/><label class="tournamenttable" for="table${table.id}">${table.name}</label>`;
-            })
-            .join('')
-        } < /div>`;
-      }
-
-      function maxGamesStarted(games) {
-        const busyPlayers = new Set();
-        const selectedGames = [];
-
-        for (const [p1, p2, id] of games) {
-          if (!busyPlayers.has(p1) && !busyPlayers.has(p2)) {
-            selectedGames.push([p1, p2, id]);
-            busyPlayers.add(p1);
-            busyPlayers.add(p2);
+            e.stopPropagation();
+            lastSelected = e.target;
+            customSelect.classList.add("show");
+            anchorElement(e.target, customSelect);
+        });
+        customSelect = document.querySelector(".custom-table-select");
+        customSelect.addEventListener("click", e => {
+          if(!e.target.matches("[data-tableid]")) {
+              return;
           }
-        }
+          const selectedTableId = e.target.dataset.tableid;
+          customSelect.classList.remove("show");
+          lastSelected.querySelector("select").value = selectedTableId;
+        });
+        document.addEventListener("click", e => {
+            if(!e.target.matches(".custom-table-select") && customSelect.classList.contains("show")){
+               customSelect.classList.remove("show");
+            }
+        })
+    }
 
-        return {
-          count: selectedGames.length,
-          games: selectedGames,
-        };
-      }
+	function updateMessage(canStartNumber) {
+		const messageContainer = document.querySelector('.floatingmessage');
+		if (!messageContainer) return;
+		messageContainer.innerHTML = canStartNumber;
+	}
 
-      function anchorElement(anchorEl, targetEl, options = {}) {
+	function createTablesHtml(tables, deactivatedTables) {
+		return `<div class="floatingmessage" onclick="this.classList.toggle('expand')"></div><h2>Tables used for the tournament</h2><div class="activetables">${tables
+			.map((table) => {
+				return `<input class="tableswitch" type="checkbox" value="${table.id}" id="table${table.id}" ${deactivatedTables.includes(table.id) ? '' : 'checked'}/><label class="tournamenttable" for="table${table.id}">${table.name}</label>`;
+			})
+			.join('')}</div>`;
+	}
+
+	function maxGamesStarted(games) {
+		const busyPlayers = new Set();
+		const selectedGames = [];
+
+		for (const [p1, p2, id] of games) {
+			if (!busyPlayers.has(p1) && !busyPlayers.has(p2)) {
+				selectedGames.push([p1, p2, id]);
+				busyPlayers.add(p1);
+				busyPlayers.add(p2);
+			}
+		}
+
+		return {
+			count: selectedGames.length,
+			games: selectedGames,
+		};
+	}
+    function anchorElement(anchorEl, targetEl, options = {}) {
         const {
-          placement = "bottom-start",
+            placement = "bottom-start",
             offsetX = 0,
             offsetY = 0
         } = options;
@@ -356,110 +348,109 @@ select.tablePicker {
         let top, left;
 
         switch (placement) {
-          case "bottom-start":
-            top = anchorRect.bottom;
-            left = anchorRect.left;
-            break;
-          case "bottom-end":
-            top = anchorRect.bottom;
-            left = anchorRect.right - targetRect.width;
-            break;
-          case "top-start":
-            top = anchorRect.top - targetRect.height;
-            left = anchorRect.left;
-            break;
-          case "right":
-            top = anchorRect.top;
-            left = anchorRect.right;
-            break;
+            case "bottom-start":
+                top = anchorRect.bottom;
+                left = anchorRect.left;
+                break;
+            case "bottom-end":
+                top = anchorRect.bottom;
+                left = anchorRect.right - targetRect.width;
+                break;
+            case "top-start":
+                top = anchorRect.top - targetRect.height;
+                left = anchorRect.left;
+                break;
+            case "right":
+                top = anchorRect.top;
+                left = anchorRect.right;
+                break;
         }
 
         targetEl.style.top = `${top + offsetY + window.scrollY}px`;
         targetEl.style.left = `${left + offsetX + window.scrollX}px`;
-      }
+    }
+	function maxGamesStartedHeuristic(games) {
+		const degree = {};
 
-      function maxGamesStartedHeuristic(games) {
-        const degree = {};
+		for (const [a, b] of games) {
+			degree[a] = (degree[a] || 0) + 1;
+			degree[b] = (degree[b] || 0) + 1;
+		}
 
-        for (const [a, b] of games) {
-          degree[a] = (degree[a] || 0) + 1;
-          degree[b] = (degree[b] || 0) + 1;
-        }
+		const sortedGames = [...games].sort(
+			([a1, b1], [a2, b2]) =>
+				degree[a1] + degree[b1] - (degree[a2] + degree[b2])
+		);
 
-        const sortedGames = [...games].sort(
-          ([a1, b1], [a2, b2]) =>
-          degree[a1] + degree[b1] - (degree[a2] + degree[b2])
-        );
+		return maxGamesStarted(sortedGames);
+	}
 
-        return maxGamesStarted(sortedGames);
-      }
+	function validPlayerId(id) {
+		return id !== 0 && id !== WALKOVER_PLAYER_ID;
+	}
 
-      function validPlayerId(id) {
-        return id !== 0 && id !== WALKOVER_PLAYER_ID;
-      }
-
-      function markAvailable() {
-        fetchTournamentData(TOURNAMENT_ID).then((tournamentData) => {
-          const tournamentFinished = tournamentData.statusCode === 2; // status === 'Finished'
-          if (tournamentFinished) {
-            return clearInterval(window.__TABLE_UX_INTERVAL__);
-          }
-
-          const running = tournamentData.matches.filter(
-            (m) => m.matchstatusCode === GAME_STATUS.PLAYING
-          );
-          const waiting = tournamentData.matches
-            .filter((m) => m.matchstatusCode === GAME_STATUS.WAITING)
-            .filter((m) => {
-              const playerAId = m.playerA.playerId;
-              const playerBId = m.playerB.playerId;
-              return validPlayerId(playerAId) && validPlayerId(playerBId);
-            });
-
-          const playersPlaying = running.reduce((acc, curr) => {
-            const playerAId = curr.playerA.playerId;
-            const playerBId = curr.playerB.playerId;
-
-            acc.add(playerAId);
-            acc.add(playerBId);
-            return acc;
-          }, new Set());
-
-          const canStart = waiting.filter((game) => {
-            const playerAId = game.playerA.playerId;
-            const playerBId = game.playerB.playerId;
-            if (!playersPlaying.has(playerAId) && !playersPlaying.has(playerBId)) {
-              return true;
+	function markAvailable() {
+		fetchTournamentData(TOURNAMENT_ID).then((tournamentData) => {
+			const tournamentFinished = tournamentData.statusCode === 2; // status === 'Finished'
+			if (tournamentFinished){
+				return clearInterval(window.__TABLE_UX_INTERVAL__);
             }
-            return false;
-          });
-          [...document.querySelectorAll('.canstart')].forEach((g) => {
-            g.classList.remove('canstart');
-          });
-          canStart.forEach((game) =>
-            document
-            .querySelector('tr#match-' + game.matchId)
-            .classList.add('canstart')
-          );
-          const tablesUsed = running.map((g) => g.table.tableId).map(String);
-          updateTableStates(tablesUsed);
-          const maxPossibleNumberOfGames = maxGamesStartedHeuristic(
-            canStart.map((g) => [g.playerA.playerId, g.playerB.playerId, g.matchId])
-          );
-          const numberOfAvailableTables = [
-              ...document.querySelectorAll('.tableswitch:checked'),
-            ]
-            .map((t) => t.value)
-            .filter((t) => !tablesUsed.includes(t)).length;
-          updateMessage(
-            Math.min(maxPossibleNumberOfGames.count, numberOfAvailableTables)
-          );
-        });
-      }
-      markAvailable();
-      if (!window.__TABLE_UX_INTERVAL__) {
-        window.__TABLE_UX_INTERVAL__ = setInterval(markAvailable, 5000);
-      }
 
-      VENUE_ID && fetchVenueData(VENUE_ID).then(setupTables);
-    })();
+			const running = tournamentData.matches.filter(
+				(m) => m.matchstatusCode === GAME_STATUS.PLAYING
+			);
+			const waiting = tournamentData.matches
+				.filter((m) => m.matchstatusCode === GAME_STATUS.WAITING)
+				.filter((m) => {
+					const playerAId = m.playerA.playerId;
+					const playerBId = m.playerB.playerId;
+					return validPlayerId(playerAId) && validPlayerId(playerBId);
+				});
+
+			const playersPlaying = running.reduce((acc, curr) => {
+				const playerAId = curr.playerA.playerId;
+				const playerBId = curr.playerB.playerId;
+
+				acc.add(playerAId);
+				acc.add(playerBId);
+				return acc;
+			}, new Set());
+
+			const canStart = waiting.filter((game) => {
+				const playerAId = game.playerA.playerId;
+				const playerBId = game.playerB.playerId;
+				if (!playersPlaying.has(playerAId) && !playersPlaying.has(playerBId)) {
+					return true;
+				}
+				return false;
+			});
+			[...document.querySelectorAll('.canstart')].forEach((g) => {
+				g.classList.remove('canstart');
+			});
+			canStart.forEach((game) =>
+				document
+					.querySelector('tr#match-' + game.matchId)
+					.classList.add('canstart')
+			);
+			const tablesUsed = running.map((g) => g.table.tableId).map(String);
+			updateTableStates(tablesUsed);
+			const maxPossibleNumberOfGames = maxGamesStartedHeuristic(
+				canStart.map((g) => [g.playerA.playerId, g.playerB.playerId, g.matchId])
+			);
+			const numberOfAvailableTables = [
+				...document.querySelectorAll('.tableswitch:checked'),
+			]
+				.map((t) => t.value)
+				.filter((t) => !tablesUsed.includes(t)).length;
+			updateMessage(
+				Math.min(maxPossibleNumberOfGames.count, numberOfAvailableTables)
+			);
+		});
+	}
+	markAvailable();
+	if (!window.__TABLE_UX_INTERVAL__) {
+		window.__TABLE_UX_INTERVAL__ = setInterval(markAvailable, 5000);
+	}
+
+	VENUE_ID && fetchVenueData(VENUE_ID).then(setupTables);
+})();
