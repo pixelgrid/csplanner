@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CS Planner
 // @namespace    http://tampermonkey.net/
-// @version      v1.0.1
+// @version      v1.0.2
 // @description  Adds visual helpers for cuescore tournament managers
 // @author       Elton Kamami
 // @match        cuescore.com/tournament/*
