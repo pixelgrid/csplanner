@@ -335,7 +335,24 @@ select.tablePicker {
 			games: selectedGames,
 		};
 	}
-    function anchorElement(anchorEl, targetEl, options = {}) {
+	
+	function maxGamesStartedHeuristic(games) {
+		const degree = {};
+
+		for (const [a, b] of games) {
+			degree[a] = (degree[a] || 0) + 1;
+			degree[b] = (degree[b] || 0) + 1;
+		}
+
+		const sortedGames = [...games].sort(
+			([a1, b1], [a2, b2]) =>
+				degree[a1] + degree[b1] - (degree[a2] + degree[b2])
+		);
+
+		return maxGamesStarted(sortedGames);
+	}
+
+	function anchorElement(anchorEl, targetEl, options = {}) {
         const {
             placement = "bottom-end",
             offsetX = 0,
@@ -369,21 +386,6 @@ select.tablePicker {
         targetEl.style.top = `${top + offsetY + window.scrollY}px`;
         targetEl.style.left = `${left + offsetX + window.scrollX}px`;
     }
-	function maxGamesStartedHeuristic(games) {
-		const degree = {};
-
-		for (const [a, b] of games) {
-			degree[a] = (degree[a] || 0) + 1;
-			degree[b] = (degree[b] || 0) + 1;
-		}
-
-		const sortedGames = [...games].sort(
-			([a1, b1], [a2, b2]) =>
-				degree[a1] + degree[b1] - (degree[a2] + degree[b2])
-		);
-
-		return maxGamesStarted(sortedGames);
-	}
 
 	function validPlayerId(id) {
 		return id !== 0 && id !== WALKOVER_PLAYER_ID;
@@ -439,9 +441,7 @@ select.tablePicker {
 			);
 			const numberOfAvailableTables = [
 				...document.querySelectorAll('.tableswitch:checked'),
-			]
-				.map((t) => t.value)
-				.filter((t) => !tablesUsed.includes(t)).length;
+			].map((t) => t.value).filter((t) => !tablesUsed.includes(t)).length;
 			updateMessage(
 				Math.min(maxPossibleNumberOfGames.count, numberOfAvailableTables)
 			);
