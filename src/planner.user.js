@@ -1,32 +1,34 @@
 // ==UserScript==
 // @name         CS Planner
 // @namespace    http://tampermonkey.net/
-// @version      v1.0.2
+// @version      v1.0.3
 // @description  Adds visual helpers for cuescore tournament managers
 // @author       Elton Kamami
 // @match        cuescore.com/tournament/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // @grant        none
+// @include      *
 // ==/UserScript==
 
 
 (() => {
 	'use strict';
 	if (
+        // not in tournament page
 		!location.pathname.startsWith('/tournament') ||
+        // tournament finished
 		document.querySelector('#resultSection') ||
+        // tournament not started
         !document.querySelector("#scoreContainer")
 	){
 		return;
     }
+    const inEditMode = !!document.querySelector("#drawSection .editLink.publicView");
 	document.head.insertAdjacentHTML(
 		'beforeend',
 		`<style data-ux-bookmarklet>${getGlobalStyles()}</style>`
 	);
-	const VENUE_ID = document
-		.querySelector('.titleSection .venue a')
-		?.href.split('/')
-		.at(-1);
+	const VENUE_ID = document.querySelector('.titleSection .venue a')?.href.split('/').at(-1);
 	let deactivatedTablesSettings =
 		localStorage.getItem('deactivated-tables-' + VENUE_ID) || '';
 	const TOURNAMENT_ID = location.pathname.split('/').at(-1);
@@ -230,13 +232,6 @@ select.tablePicker {
 			.join(' ');
 
 		document.body.className = `${tablesUsedClasses} ${deactivatedTablesClasses}`;
-		if (deactivatedTablesSettings !== deactivatedTables.join()) {
-			localStorage.setItem(
-				'deactivated-tables-' + VENUE_ID,
-				deactivatedTables.join()
-			);
-			deactivatedTablesSettings = deactivatedTables.join();
-		}
 	}
 	function setupTables(venueData) {
 		const tableData = getTableData(venueData);
@@ -269,7 +264,16 @@ select.tablePicker {
 	function createTableToggles(tableData) {
 		const deactivatedTables = deactivatedTablesSettings.split(',');
 		const html = createTablesHtml(tableData, deactivatedTables);
-		document.querySelector('#schedule').insertAdjacentHTML('beforebegin', html);
+		document.querySelector('#tournament').insertAdjacentHTML('beforebegin', html);
+        document.querySelector(".activetables").addEventListener("change", () => {
+            const deactivatedTables = [
+                ...document.querySelectorAll('.tableswitch:not(:checked)'),
+            ].map((e) => e.value);
+            localStorage.setItem(
+				'deactivated-tables-' + VENUE_ID,
+				deactivatedTables.join()
+			);
+        })
 	}
 
     function createCustomTableSelect(tableData){
@@ -296,7 +300,7 @@ select.tablePicker {
           const selectedTableId = e.target.dataset.tableid;
           customSelect.classList.remove("show");
           lastSelected.querySelector("select").value = selectedTableId;
-        });
+        })
         document.addEventListener("click", e => {
             if(!e.target.matches(".custom-table-select") && customSelect.classList.contains("show")){
                customSelect.classList.remove("show");
@@ -335,26 +339,9 @@ select.tablePicker {
 			games: selectedGames,
 		};
 	}
-	
-	function maxGamesStartedHeuristic(games) {
-		const degree = {};
-
-		for (const [a, b] of games) {
-			degree[a] = (degree[a] || 0) + 1;
-			degree[b] = (degree[b] || 0) + 1;
-		}
-
-		const sortedGames = [...games].sort(
-			([a1, b1], [a2, b2]) =>
-				degree[a1] + degree[b1] - (degree[a2] + degree[b2])
-		);
-
-		return maxGamesStarted(sortedGames);
-	}
-
-	function anchorElement(anchorEl, targetEl, options = {}) {
+    function anchorElement(anchorEl, targetEl, options = {}) {
         const {
-            placement = "bottom-end",
+            placement = "bottom-start",
             offsetX = 0,
             offsetY = 0
         } = options;
@@ -386,6 +373,21 @@ select.tablePicker {
         targetEl.style.top = `${top + offsetY + window.scrollY}px`;
         targetEl.style.left = `${left + offsetX + window.scrollX}px`;
     }
+	function maxGamesStartedHeuristic(games) {
+		const degree = {};
+
+		for (const [a, b] of games) {
+			degree[a] = (degree[a] || 0) + 1;
+			degree[b] = (degree[b] || 0) + 1;
+		}
+
+		const sortedGames = [...games].sort(
+			([a1, b1], [a2, b2]) =>
+				degree[a1] + degree[b1] - (degree[a2] + degree[b2])
+		);
+
+		return maxGamesStarted(sortedGames);
+	}
 
 	function validPlayerId(id) {
 		return id !== 0 && id !== WALKOVER_PLAYER_ID;
@@ -441,16 +443,25 @@ select.tablePicker {
 			);
 			const numberOfAvailableTables = [
 				...document.querySelectorAll('.tableswitch:checked'),
-			].map((t) => t.value).filter((t) => !tablesUsed.includes(t)).length;
+			]
+				.map((t) => t.value)
+				.filter((t) => !tablesUsed.includes(t)).length;
 			updateMessage(
 				Math.min(maxPossibleNumberOfGames.count, numberOfAvailableTables)
 			);
 		});
 	}
-	markAvailable();
-	if (!window.__TABLE_UX_INTERVAL__) {
-		window.__TABLE_UX_INTERVAL__ = setInterval(markAvailable, 5000);
-	}
+    function init(){
+        markAvailable();
+        if (!window.__TABLE_UX_INTERVAL__) {
+            window.__TABLE_UX_INTERVAL__ = setInterval(markAvailable, 5000);
+        }
 
-	VENUE_ID && fetchVenueData(VENUE_ID).then(setupTables);
+        VENUE_ID && fetchVenueData(VENUE_ID).then(setupTables);
+    }
+    if(inEditMode){
+        init();
+    } else {
+        document.querySelector(".mpad .editLink")?.addEventListener("click", init)
+    }
 })();
