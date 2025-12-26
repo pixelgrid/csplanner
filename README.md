@@ -20,8 +20,7 @@ Mobile view
 
 <img width="819" height="777" alt="image" src="https://github.com/user-attachments/assets/4c279d1e-e5fc-4588-9940-16ce5ca13bb2" />
 
-
-## Tampermonkey installation
+## Tampermonkey installation (If you have a pc/linux/android prefer this method)
 
 - Install the Tampermonkey extension (available for chrome, edge, safari) [installation guide](https://www.tampermonkey.net/faq.php#Q100)
   - [chrome extension](https://chromewebstore.google.com/detail/dhdgffkkebhmkfjojejmpbldmpobfkfo)
@@ -37,7 +36,7 @@ Mobile view
 <img width="1710" height="351" alt="image" src="https://github.com/user-attachments/assets/e10a83fb-2902-4c8b-a636-f80d9612d5e6" />
 
 
-## Userscripts installation
+## Userscripts installation (If you have a ipad/mac prefer this method)
 
 - Install the usersscripts safari extension [link](https://apps.apple.com/us/app/userscripts/id1463298887)
 - Allow the extension from Settings -> Safari -> Extensions -> Userscripts
