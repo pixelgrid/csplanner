@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CS Planner
 // @namespace    http://tampermonkey.net/
-// @version      v1.0.3
+// @version      v1.0.4
 // @description  Adds visual helpers for cuescore tournament managers
 // @author       Elton Kamami
 // @match        cuescore.com/tournament/*
@@ -341,7 +341,7 @@ select.tablePicker {
 	}
     function anchorElement(anchorEl, targetEl, options = {}) {
         const {
-            placement = "bottom-start",
+            placement = "bottom-end",
             offsetX = 0,
             offsetY = 0
         } = options;
