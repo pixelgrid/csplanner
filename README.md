@@ -37,4 +37,15 @@ Mobile view
 <img width="1710" height="351" alt="image" src="https://github.com/user-attachments/assets/e10a83fb-2902-4c8b-a636-f80d9612d5e6" />
 
 
+## Userscripts installation
+
+- Install the usersscripts safari extension [link](https://apps.apple.com/us/app/userscripts/id1463298887)
+- Allow the extension from Settings -> Safari -> Extensions -> Userscripts
+- Go to the plugins sourcecode [link](https://github.com/pixelgrid/csplanner/raw/refs/heads/main/src/planner.user.js)
+- Click the safari extensions icon
+  <img width="143" height="94" alt="image" src="https://github.com/user-attachments/assets/e6cf57f3-6131-4266-98d5-ffc7b4a5595b" />
+- Click install <img width="417" height="178" alt="image" src="https://github.com/user-attachments/assets/ffd674af-fc32-42a7-af8a-cf7c74bc57d8" />
+
+Make sure the Userscripts extension is allowed to access github.com and cuescore.com pages
+
 
