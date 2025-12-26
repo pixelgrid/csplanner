@@ -1,11 +1,6 @@
 # csplanner
 Helpers for cuescore tournament managers
 
-The code here is primarily to be used on mobile devices or tablets when visiting a cuescore tournament page that you have edit access over.
-
-The minified src/planner.user.js should be saved as a javascript bookmark (prepend javascript:).
-A tool like https://caiorss.github.io/bookmarklet-maker/ can be used
-
 Depending on the browser and platform different developer settings might need to be enabled.
 
 Once in a cuescore tournament page, you type the name of the bookmark created above in the address bar and you select it. After that the following will be made available
@@ -13,6 +8,7 @@ Once in a cuescore tournament page, you type the name of the bookmark created ab
 1. Rows of games that can be started will be marked with a green color
 2. A table on/off section will be showed (deactivating a table will show it as red on the table selector)
 3. the table selector shows the same info as in the windows desktop version (tables in use are highlighted differently)
+4. a count of the maximum number of games that can be started is shown on the top right (once clicked it shows in the center on a focus mode)
 
 <img width="1317" height="868" alt="image" src="https://github.com/user-attachments/assets/e0d8c1f1-d90c-4b3f-9343-9b922d3f0614" />
 
