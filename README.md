@@ -16,34 +16,42 @@ Mobile view
 
 <img width="819" height="777" alt="image" src="https://github.com/user-attachments/assets/4c279d1e-e5fc-4588-9940-16ce5ca13bb2" />
 
-## Tampermonkey installation (If you have a pc/linux/android prefer this method)
 
-- Install the Tampermonkey extension (available for chrome, edge, safari) [installation guide](https://www.tampermonkey.net/faq.php#Q100)
-  - [chrome extension](https://chromewebstore.google.com/detail/dhdgffkkebhmkfjojejmpbldmpobfkfo)
-  - [safari extension](https://apps.apple.com/app/tampermonkey/id6738342400)
-  - [firefox extension](https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/)
-  - [edge extension](https://microsoftedge.microsoft.com/addons/detail/iikmkjmpaadaobahmlepeloendndfphd)
-- Enable developer mode and user scripts for it [instructions](https://www.tampermonkey.net/faq.php#Q209)
-- Go to the [src/planner.user.js](https://github.com/pixelgrid/csplanner/blob/main/src/planner.user.js) file and click the Raw button (tampermonkey will open up automatically)
-<img width="439" height="161" alt="image" src="https://github.com/user-attachments/assets/3a00a54d-8697-4182-a782-bc98ea0245f3" />
+# Installation guides
 
-- Click install on the top right or reinstall
+## For chrome:
+1. install [tampermokey for chrome](https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en)
+2. Type chrome://extensions/ in your address bar and enable developer mode from the top right
+3. open [plugin code](https://github.com/pixelgrid/csplanner/raw/refs/heads/main/src/planner.user.js)
+4. Click install
 
-<img width="1710" height="351" alt="image" src="https://github.com/user-attachments/assets/e10a83fb-2902-4c8b-a636-f80d9612d5e6" />
+## For firefox:
+1. install [tampermokey for firefox](https://addons.mozilla.org/nl/firefox/addon/tampermonkey/)
+2. open [plugin code](https://github.com/pixelgrid/csplanner/raw/refs/heads/main/src/planner.user.js)
+3. Click install
 
+## For edge:
+1. install [tampermokey for edge](https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaadaobahmlepeloendndfphd)
+2. Type edge://extensions/ in your address bar and enable developer mode from the left side
+3. Open [plugin code](https://github.com/pixelgrid/csplanner/raw/refs/heads/main/src/planner.user.js)
+4. Click install
 
-## Userscripts installation (If you have a ipad/mac prefer this method)
+## For Safari
+1. Install [userscripts for safari](https://apps.apple.com/us/app/userscripts/id1463298887)
+2. Go to Settings -> Safari -> Extensions and enable Userscripts
+3. Allow usersscripts to run on cuescore.com and github.com when asked
+4. Open [plugin code](https://github.com/pixelgrid/csplanner/raw/refs/heads/main/src/planner.user.js)
+5. Click install
 
-- Install the usersscripts safari extension [link](https://apps.apple.com/us/app/userscripts/id1463298887)
-- Allow the extension from Settings -> Safari -> Extensions -> Userscripts
-- Go to the plugins sourcecode [link](https://github.com/pixelgrid/csplanner/raw/refs/heads/main/src/planner.user.js)
+## For safari on ipad/iphone
+1. Install [userscripts for safari](https://apps.apple.com/us/app/userscripts/id1463298887)
+2. Go to Settings -> Safari -> Extensions and enable Userscripts
+3. Allow usersscripts to run on cuescore.com and github.com when asked
+4. Open [plugin code](https://github.com/pixelgrid/csplanner/raw/refs/heads/main/src/planner.user.js)
 - Click the safari extensions icon
-- 
   <img width="143" height="94" alt="image" src="https://github.com/user-attachments/assets/e6cf57f3-6131-4266-98d5-ffc7b4a5595b" />
 - Click install
--
 - <img width="417" height="178" alt="image" src="https://github.com/user-attachments/assets/ffd674af-fc32-42a7-af8a-cf7c74bc57d8" />
 
-Make sure the Userscripts extension is allowed to access github.com and cuescore.com pages
 
 
