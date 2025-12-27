@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CS Planner
 // @namespace    http://tampermonkey.net/
-// @version      v1.0.4
+// @version      v1.0.5
 // @description  Adds visual helpers for cuescore tournament managers
 // @author       Elton Kamami
 // @match        cuescore.com/tournament/*
@@ -86,7 +86,7 @@ table.score select.tablePicker option {
   color: white !important;
 }
 
-select.tablePicker {
+.csplanner select.tablePicker {
   background: none;
   padding: 0;
   width: 80px;
@@ -283,7 +283,7 @@ select.tablePicker {
            <div data-tableid="0">Table</div>
            ${tableData.map(({id, name}) => `<div data-tableid="${id}">${name}</div>`).join("")}
         </div>`);
-        document.querySelector("#scoreContainer").addEventListener("click", e => {
+        document.querySelector("#Content").addEventListener("click", e => {
             if(!e.target.matches("td.table")){
                 return;
             }
@@ -452,6 +452,7 @@ select.tablePicker {
 		});
 	}
     function init(){
+        document.querySelector("#Container").classList.add("csplanner");
         markAvailable();
         if (!window.__TABLE_UX_INTERVAL__) {
             window.__TABLE_UX_INTERVAL__ = setInterval(markAvailable, 5000);
