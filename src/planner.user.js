@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CS Planner
 // @namespace    http://tampermonkey.net/
-// @version      v1.0.5
+// @version      v1.0.6
 // @description  Adds visual helpers for cuescore tournament managers
 // @author       Elton Kamami
 // @match        cuescore.com/tournament/*
@@ -297,9 +297,16 @@ table.score select.tablePicker option {
           if(!e.target.matches("[data-tableid]")) {
               return;
           }
-          const selectedTableId = e.target.dataset.tableid;
+		  const selectedTableId = e.target.dataset.tableid;
+          const nativeSelect = lastSelected.querySelector("select");
+          const gameRow = lastSelected.closest("tr");
+
           customSelect.classList.remove("show");
-          lastSelected.querySelector("select").value = selectedTableId;
+          nativeSelect.value = selectedTableId;
+		  // for running games changing the table should be reflected on the backend
+          if(gameRow.classList.contains("playing")){
+              nativeSelect.onchange();
+          }
         })
         document.addEventListener("click", e => {
             if(!e.target.matches(".custom-table-select") && customSelect.classList.contains("show")){
