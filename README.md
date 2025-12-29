@@ -38,20 +38,26 @@ Mobile view
 
 ## For Safari
 1. Install [userscripts for safari](https://apps.apple.com/us/app/userscripts/id1463298887)
-2. Go to Settings -> Safari -> Extensions and enable Userscripts
-3. Allow usersscripts to run on cuescore.com and github.com when asked
-4. Open [plugin code](https://github.com/pixelgrid/csplanner/raw/refs/heads/main/src/planner.user.js)
-5. Click install
-
-## For safari on ipad/iphone
-1. Install [userscripts for safari](https://apps.apple.com/us/app/userscripts/id1463298887)
-2. Go to Settings -> Safari -> Extensions and enable Userscripts
+2. Go to Safari Settings -> Extensions and enable Userscripts (if not already)
 3. Allow usersscripts to run on cuescore.com and github.com when asked
 4. Open [plugin code](https://github.com/pixelgrid/csplanner/raw/refs/heads/main/src/planner.user.js)
 - Click the safari extensions icon
   <img width="143" height="94" alt="image" src="https://github.com/user-attachments/assets/e6cf57f3-6131-4266-98d5-ffc7b4a5595b" />
 - Click install
 - <img width="417" height="178" alt="image" src="https://github.com/user-attachments/assets/ffd674af-fc32-42a7-af8a-cf7c74bc57d8" />
+
+## For safari on ipad/iphone
+1. Install [userscripts for safari](https://apps.apple.com/us/app/userscripts/id1463298887)
+2. Go to Settings -> Safari -> Extensions and enable Userscripts
+3. Allow usersscripts to run on cuescore.com and github.com when asked
+4. Open [plugin code](https://github.com/pixelgrid/csplanner/raw/refs/heads/main/src/planner.user.js)
+- Click the safari extensions icon (puzzle piece inside address bar)
+<img width="933" height="686" alt="image" src="https://github.com/user-attachments/assets/397da168-9e6e-48c8-9ba1-ab154ae05d5c" />
+
+5. Click install
+6. Go to a tournament you have edit access over and click edit. If the experience does not update, click the puzzle piece in the address bar once again and click to allow running for the current website)
+7. refresh once more and everything should be working
+
 
 
 
