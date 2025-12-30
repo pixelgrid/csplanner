@@ -22,7 +22,7 @@
 
      // override link to challenges page to have country preselected
     function addCountryToChallendesLinks(){
-        [...document.querySelectorAll("a.challenges")].forEach(l => {l.href = '/challenges?c=1000231' + ACCOUNT_COUNTRY});
+        [...document.querySelectorAll("a.challenges")].forEach(l => {l.href = '/challenges?c=' + ACCOUNT_COUNTRY});
     }
 
     GM_addStyle(`
