@@ -27,7 +27,7 @@
 
     GM_addStyle(`
       .tournament.banner,
-      .notificationRow a img.pro,
+      .notificationRow a[href*="tournament"] img.pro,
       .latestPosts.card,
       .followingNotParticipating.card,
       .cuescore-ad {
