@@ -36,6 +36,7 @@
       .tournament.withbanner{background: white!important;}
       .latestMatches.card{order: -1;}
       .upcomingEvents.card{order: -2;}
+      .score a {display: flex; gap: 4px; flex-direction: row-reverse;}
     `);
 
     addCountryToTournamentSearchLinks();
