@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         Cuescore sane defaults
 // @namespace    http://tampermonkey.net/
-// @version      v1.0.0
+// @version      v1.0.1
 // @description  Small changes that make cuescore better
 // @author       Elton Kamami
-// @match        cuescore.com/*
+// @match        https://cuescore.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // @grant        GM_addStyle
 // @include      *
@@ -13,16 +13,34 @@
 (function() {
     'use strict';
 
-    const ACCOUNT_COUNTRY = 1000231;
+    // only run on top frame
+    if(!location.origin.match("cuescore"))
+        return;
+
+    const LOCALSTORAGE_KEY = "cs-default-country";
+
+    async function getProfileCountryId(){
+      const profileUrl = document.querySelector("nav .profile").href;
+      const savedValue = localStorage.getItem(LOCALSTORAGE_KEY);
+      if(savedValue) return savedValue;
+
+      const parser = new DOMParser();
+      const res = await fetch(`${profileUrl}?edit`);
+      const html = await res.text();
+      const dom = parser.parseFromString(html, "text/html");
+      const defaultCountry = dom.querySelector("select#countryId")?.value ?? null;
+      localStorage.setItem(LOCALSTORAGE_KEY, defaultCountry);
+      return defaultCountry;
+    }
 
     // override link to tournaments page to have country preselected
-    function addCountryToTournamentSearchLinks(){
-        [...document.querySelectorAll("a.tournaments")].forEach(l => {l.href = '/tournaments?c=' + ACCOUNT_COUNTRY});
+    function addCountryToTournamentSearchLinks(countryId){
+        [...document.querySelectorAll("a.tournaments")].forEach(l => {l.href = '/tournaments?c=' + countryId});
     }
 
      // override link to challenges page to have country preselected
-    function addCountryToChallendesLinks(){
-        [...document.querySelectorAll("a.challenges")].forEach(l => {l.href = '/challenges?c=' + ACCOUNT_COUNTRY});
+    function addCountryToChallendesLinks(countryId){
+        [...document.querySelectorAll("a.challenges")].forEach(l => {l.href = '/challenges?c=' + countryId});
     }
 
     GM_addStyle(`
@@ -39,6 +57,8 @@
       .score a {display: flex; gap: 4px; flex-direction: row-reverse;}
     `);
 
-    addCountryToTournamentSearchLinks();
-    addCountryToChallendesLinks();
+    getProfileCountryId().then((countryId) => {
+        addCountryToTournamentSearchLinks(countryId);
+        addCountryToChallendesLinks(countryId);
+    });
 })();
