@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CS Planner
 // @namespace    http://tampermonkey.net/
-// @version      v1.0.6
+// @version      v1.0.7
 // @description  Adds visual helpers for cuescore tournament managers
 // @author       Elton Kamami
 // @match        cuescore.com/tournament/*
@@ -14,6 +14,8 @@
 (() => {
 	'use strict';
 	if (
+		// not in top frame
+        !location.origin.match("cuescore") ||
         // not in tournament page
 		!location.pathname.startsWith('/tournament') ||
         // tournament finished
