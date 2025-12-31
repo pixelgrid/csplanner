@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cuescore sane defaults
 // @namespace    http://tampermonkey.net/
-// @version      v1.0.1
+// @version      v1.0.2
 // @description  Small changes that make cuescore better
 // @author       Elton Kamami
 // @match        https://cuescore.com/*
@@ -18,29 +18,16 @@
         return;
 
     const LOCALSTORAGE_KEY = "cs-default-country";
-
-    async function getProfileCountryId(){
-      const profileUrl = document.querySelector("nav .profile").href;
-      const savedValue = localStorage.getItem(LOCALSTORAGE_KEY);
-      if(savedValue) return savedValue;
-
-      const parser = new DOMParser();
-      const res = await fetch(`${profileUrl}?edit`);
-      const html = await res.text();
-      const dom = parser.parseFromString(html, "text/html");
-      const defaultCountry = dom.querySelector("select#countryId")?.value ?? null;
-      localStorage.setItem(LOCALSTORAGE_KEY, defaultCountry);
-      return defaultCountry;
-    }
+    const COUNTRY_ID = '1000231'; // NL
 
     // override link to tournaments page to have country preselected
-    function addCountryToTournamentSearchLinks(countryId){
-        [...document.querySelectorAll("a.tournaments")].forEach(l => {l.href = '/tournaments?c=' + countryId});
+    function addCountryToTournamentSearchLinks(){
+        [...document.querySelectorAll("a.tournaments")].forEach(l => {l.href = '/tournaments?c=' + COUNTRY_ID});
     }
 
      // override link to challenges page to have country preselected
-    function addCountryToChallendesLinks(countryId){
-        [...document.querySelectorAll("a.challenges")].forEach(l => {l.href = '/challenges?c=' + countryId});
+    function addCountryToChallendesLinks(){
+        [...document.querySelectorAll("a.challenges")].forEach(l => {l.href = '/challenges?c=' + COUNTRY_ID});
     }
 
     GM_addStyle(`
@@ -57,8 +44,6 @@
       .score a {display: flex; gap: 4px; flex-direction: row-reverse;}
     `);
 
-    getProfileCountryId().then((countryId) => {
-        addCountryToTournamentSearchLinks(countryId);
-        addCountryToChallendesLinks(countryId);
-    });
+    addCountryToTournamentSearchLinks();
+    addCountryToChallendesLinks();
 })();
