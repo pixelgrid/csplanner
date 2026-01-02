@@ -1,0 +1,286 @@
+// ==UserScript==
+// @name         Tournament generator (transactional)
+// @namespace    http://tampermonkey.net/
+// @version      1.0.0
+// @description  Tool to generate recurring tournaments (clone + update as one transaction)
+// @author       You
+// @match        https://cuescore.com/tournament/edit*
+// @grant        GM_addStyle
+// ==/UserScript==
+/* global jQuery, CS */
+(function () {
+    'use strict';
+
+    if (!location.origin.match("cuescore")) {
+        return;
+    }
+
+    let selectedDates = [];
+
+    GM_addStyle(`
+.tournament-generator{ cursor:pointer; }
+.cs-generator{ width:500px; }
+.cs-generator .overview{ display:none; }
+.cs-generator textarea:disabled{ background:white!important;color:black!important; }
+.cs-dialog{ border:1px solid #c8c8c8;border-radius:2px;padding:30px; }
+.cs-dialog-close{ position:absolute;right:0;top:0;margin:10px;font-weight:bold;font-size:20px;cursor:pointer; }
+.cs-dialog.generating:after {content: "Generating tournaments ...";position: fixed;width: 100%;height: 100%;
+background: black;top: 0;z-index: 9999;opacity: .7;left: 0;color: white;display: flex;justify-content: center;align-items: center;pointer-events: none;font-size:20px;font-weight: bold;}
+    `);
+
+    const editHeader = document.querySelector(".tournamentEditHeader");
+    const orgStub = editHeader.querySelector(".breadcrumbs a").href.split("/").at(-1);
+    const organizationId = CS.Header.data.accounts.filter(a => a.stub === orgStub)[0].organizationId;
+    const tournamentId = document.querySelector('input[name="tournamentId"]').value;
+    const tournamentName = document.querySelector(".tournamentEditHeader a.title").textContent;
+
+    function addCTA() {
+        editHeader.insertAdjacentHTML(
+            "afterend",
+            "<button class='tournament-generator' type='button'>Make recurring</button>"
+        );
+    }
+
+    function addListeners() {
+        jQuery(".tournament-generator").click(() => {
+            jQuery("dialog")[0].showModal();
+        });
+
+        jQuery(".cs-dialog-close").click(e =>
+            e.target.closest("dialog").close()
+        );
+
+        jQuery(".cs-generate").click(e => {
+            e.stopPropagation();
+            const dates = jQuery(".cs-tournament-dates")
+                .val()
+                .trim()
+                .split("\n")
+                .filter(Boolean);
+            const basename = jQuery(".cs-generator .cs-basename").val();
+            const start = Number(jQuery(".cs-generator .cs-start-num").val());
+
+            if (!basename || dates.length === 0 || start < 1) {
+                alert("Basename, start number and at least one date are required");
+                return;
+            }
+
+            cloneTournaments(basename, dates, start);
+        });
+
+        jQuery(".cs-date").datetimepicker({
+            timepicker: false,
+            opened: true,
+            format: 'Y-m-d',
+            inline: true,
+            closeOnDateSelect: 0,
+            onChangeDateTime: function (dp, $input) {
+                const d = $input.val();
+                selectedDates = selectedDates.includes(d)
+                    ? selectedDates.filter(x => x !== d)
+                    : [...selectedDates, d];
+
+                selectedDates.sort((a, b) => new Date(a) - new Date(b));
+                this.setOptions({ highlightedDates: selectedDates });
+                jQuery(".cs-tournament-dates").val(selectedDates.join("\n"));
+                updateOverview();
+            }
+        });
+
+        jQuery(".cs-basename, .cs-start-num").on("keyup", updateOverview);
+    }
+
+    function updateOverview() {
+        const overview = jQuery(".cs-generator .overview");
+        const dates = jQuery(".cs-tournament-dates").val().trim().split("\n").filter(Boolean);
+        const basename = jQuery(".cs-generator .cs-basename").val();
+        const start = Number(jQuery(".cs-generator .cs-start-num").val());
+
+        if (!dates.length) {
+            overview.hide();
+            return;
+        }
+
+        jQuery(".cs-generator ul").html(
+            dates.map((d, i) =>
+                `<li>${basename} #${start + i} at ${d}</li>`
+            ).join("")
+        );
+        overview.show();
+    }
+
+    function generateDialog() {
+        return `
+<dialog class="cs-dialog">
+  <span class="cs-dialog-close">x</span>
+  <div class="material cs-generator">
+    <div class="input-group">
+      <input type="text" value="${tournamentName}" class="form-control cs-basename" />
+      <label>Tournament basename</label>
+    </div>
+    <div class="input-group">
+      <input type="number" value="1" min="1" class="form-control cs-start-num" />
+      <label>Starting number</label>
+    </div>
+    <div class="input-group">
+      <textarea class="form-control cs-tournament-dates" disabled></textarea>
+      <label>Tournament dates</label>
+    </div>
+    <div class="input-group">
+      <span class="desc">Click a date again to remove it</span>
+      <hr />
+      <span class="cs-date"></span>
+    </div>
+    <div class="overview">
+      <h4>The following tournaments will be created</h4>
+      <ul></ul>
+    </div>
+    <hr />
+    <button type="button" class="cs-generate">Generate</button>
+  </div>
+</dialog>`;
+    }
+
+    /* =========================
+       Transactional logic
+       ========================= */
+
+    async function cloneTournamentAndGetId(name) {
+        const res = await fetch(
+            `/tournament/edit/?name=${encodeURIComponent(name)}&copy=${tournamentId}`,
+            { redirect: "follow" }
+        );
+
+        if (!res.ok) {
+            throw new Error("Clone failed");
+        }
+
+        const url = new URL(res.url);
+        const draftId =
+            url.searchParams.get("tournamentId") ||
+            url.searchParams.get("id") ||
+            url.searchParams.get("copy");
+
+        if (!draftId) {
+            throw new Error("Failed to extract draftId");
+        }
+
+        return draftId;
+    }
+
+    function buildBaseSaveOptions() {
+        prepareData();
+        const opts = {};
+        jQuery("#editTournament")
+            .serializeArray()
+            .forEach(f => opts[f.name] = f.value);
+        return opts;
+    }
+
+    async function cloneAndPublishTransaction({ basename, index, date, baseOptions }) {
+        const name = `${basename} #${index}`;
+        const draftId = await cloneTournamentAndGetId(name);
+
+        await saveUpdatedTournament(
+            baseOptions,
+            date,
+            draftId,
+            name
+        );
+
+        return { draftId, name, date };
+    }
+
+    async function cloneTournaments(basename, dates, start) {
+        const baseOptions = buildBaseSaveOptions();
+
+        const transactions = dates.map((date, i) => {
+            const index = start + i;
+            return withRetry(
+                () => cloneAndPublishTransaction({
+                    basename,
+                    index,
+                    date,
+                    baseOptions
+                }),
+                { retries: 3, baseDelay: 500 }
+            );
+        });
+
+        const results = await Promise.allSettled(transactions);
+
+        const failed = results.filter(r => r.status === "rejected");
+        console.log("Results:", results);
+
+        if (failed.length) {
+            alert(`${failed.length} tournaments failed to generate`);
+        }
+    }
+
+    /* =========================
+       CueScore internals
+       ========================= */
+
+    function prepareData() {
+        const organizations = [];
+        jQuery('div.organizations table tbody tr').each(function () {
+            organizations.push(jQuery(this).data('organization').organizationId);
+        });
+        jQuery('#organizations').val(organizations.join(','));
+
+        const managers = [];
+        jQuery('div.managers table tbody tr').each(function () {
+            managers.push(jQuery(this).data('player').playerId);
+        });
+        jQuery('#managers').val(managers.join(','));
+
+        const venues = [];
+        jQuery('div.venues table tbody tr').each(function () {
+            venues.push(jQuery(this).data('venue').venueId);
+        });
+        jQuery('#venues').val(venues.join(','));
+
+        const tournamentParticipations = [];
+        jQuery('#tournamentParticipationSection table tbody tr').each(function () {
+            tournamentParticipations.push(jQuery(this).data('tournament').tournamentId);
+        });
+        jQuery('#tournamentParticipations').val(tournamentParticipations.join(','));
+    }
+
+    function saveUpdatedTournament(baseOptions, dt, draftId, name) {
+        const opts = { ...baseOptions };
+        opts.name = name;
+        opts.tournamentId = draftId;
+        opts.startdate = dt;
+        opts.stopdate = dt;
+
+        return fetch("/ajax/tournament/edit/save.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(opts)
+        }).then(res => {
+            if (!res.ok) throw new Error("Save failed");
+            return res;
+        });
+    }
+
+    async function withRetry(fn, { retries = 5, baseDelay = 300, factor = 2 } = {}) {
+        let delay = baseDelay;
+        for (let attempt = 1; attempt <= retries; attempt++) {
+            try {
+                return await fn();
+            } catch (err) {
+                if (attempt === retries) throw err;
+                await new Promise(r => setTimeout(r, delay));
+                delay *= factor;
+            }
+        }
+    }
+
+    /* ========================= */
+
+    document.body.insertAdjacentHTML("beforeend", generateDialog());
+    addCTA();
+    addListeners();
+
+})();
