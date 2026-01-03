@@ -24,8 +24,50 @@
 .cs-generator textarea:disabled{ background:white!important;color:black!important; }
 .cs-dialog{ border:1px solid #c8c8c8;border-radius:2px;padding:30px; }
 .cs-dialog-close{ position:absolute;right:0;top:0;margin:10px;font-weight:bold;font-size:20px;cursor:pointer; }
-.cs-dialog.generating:after {content: "Generating tournaments ...";position: fixed;width: 100%;height: 100%;
-background: black;top: 0;z-index: 9999;opacity: .7;left: 0;color: white;display: flex;justify-content: center;align-items: center;pointer-events: none;font-size:20px;font-weight: bold;}
+.cs-dialog.generating:after {
+  content: "Generating tournaments ...";
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: black;
+  top: 0;
+  z-index: 9999;
+  opacity: .7;
+  left: 0;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  font-size:20px;
+  font-weight: bold;
+}
+.tag{
+  font-family: system-ui, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 16px;
+  -webkit-box-align: center;
+  align-items: center;
+  color: white;
+  background-color: rgb(63, 110, 197);
+  border-style: solid;
+  border-width: 0px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-flex;
+  height: 24px;
+  -webkit-box-pack: justify;
+  justify-content: space-between;
+  margin: 5px;
+  padding: 2px 8px;
+  outline: none;
+  width: 120px;
+}
+.tag:hover {box-shadow: rgba(255, 255, 255, 0.2) 0px 0px 100px inset;}
+.tag:after{content: 'x'}
+.date-tags{font-size:12px;}
     `);
 
     const editHeader = document.querySelector(".tournamentEditHeader");
@@ -68,6 +110,12 @@ background: black;top: 0;z-index: 9999;opacity: .7;left: 0;color: white;display:
             cloneTournaments(basename, dates, start);
         });
 
+        jQuery(".cs-date-tags").on("click", ".tag", function(e){
+            const date = e.target.textContent.trim();
+            selectedDates = selectedDates.filter(d => d !== date);
+            updateDateTags();
+        })
+
         jQuery(".cs-date").datetimepicker({
             timepicker: false,
             opened: true,
@@ -76,13 +124,12 @@ background: black;top: 0;z-index: 9999;opacity: .7;left: 0;color: white;display:
             closeOnDateSelect: 0,
             onChangeDateTime: function (dp, $input) {
                 const d = $input.val();
-                selectedDates = selectedDates.includes(d)
-                    ? selectedDates.filter(x => x !== d)
-                    : [...selectedDates, d];
-
+                if(selectedDates.includes(d)){
+                    return;
+                }
+                selectedDates.push(d);
                 selectedDates.sort((a, b) => new Date(a) - new Date(b));
-                this.setOptions({ highlightedDates: selectedDates });
-                jQuery(".cs-tournament-dates").val(selectedDates.join("\n"));
+                updateDateTags();
                 updateOverview();
             }
         });
@@ -90,19 +137,22 @@ background: black;top: 0;z-index: 9999;opacity: .7;left: 0;color: white;display:
         jQuery(".cs-basename, .cs-start-num").on("keyup", updateOverview);
     }
 
+    function updateDateTags(){
+        jQuery(".cs-date-tags").html(selectedDates.map(d => `<div class="tag">${d}</div>`).join(""));
+    }
+
     function updateOverview() {
         const overview = jQuery(".cs-generator .overview");
-        const dates = jQuery(".cs-tournament-dates").val().trim().split("\n").filter(Boolean);
         const basename = jQuery(".cs-generator .cs-basename").val();
         const start = Number(jQuery(".cs-generator .cs-start-num").val());
 
-        if (!dates.length) {
+        if (!selectedDates.length) {
             overview.hide();
             return;
         }
 
         jQuery(".cs-generator ul").html(
-            dates.map((d, i) =>
+            selectedDates.map((d, i) =>
                 `<li>${basename} #${start + i} at ${d}</li>`
             ).join("")
         );
@@ -123,12 +173,12 @@ background: black;top: 0;z-index: 9999;opacity: .7;left: 0;color: white;display:
       <label>Starting number</label>
     </div>
     <div class="input-group">
-      <textarea class="form-control cs-tournament-dates" disabled></textarea>
+      <div class="cs-date-tags"></div>
+      <input type="number" value="1" min="1" class="form-control" hidden/>
       <label>Tournament dates</label>
+      <span class="desc">Click a date to remove it</span>
     </div>
     <div class="input-group">
-      <span class="desc">Click a date again to remove it</span>
-      <hr />
       <span class="cs-date"></span>
     </div>
     <div class="overview">
