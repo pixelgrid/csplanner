@@ -72,7 +72,6 @@
 
     const editHeader = document.querySelector(".tournamentEditHeader");
     const orgStub = editHeader.querySelector(".breadcrumbs a").href.split("/").at(-1);
-    const organizationId = CS.Header.data.accounts.filter(a => a.stub === orgStub)[0].organizationId;
     const tournamentId = document.querySelector('input[name="tournamentId"]').value;
     const tournamentName = document.querySelector(".tournamentEditHeader a.title").textContent;
 
