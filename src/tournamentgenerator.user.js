@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tournament generator (transactional)
 // @namespace    http://tampermonkey.net/
-// @version      1.0.0
+// @version      1.0.1
 // @description  Tool to generate recurring tournaments (clone + update as one transaction)
 // @author       You
 // @match        https://cuescore.com/tournament/edit*
@@ -219,7 +219,9 @@
         const opts = {};
         jQuery("#editTournament")
             .serializeArray()
-            .forEach(f => opts[f.name] = f.value);
+            .forEach(f => {opts[f.name] = f.value});
+        const rankingId = document.querySelector("#ranking .section-content p a")?.href.split("/").at(-1) ?? 0;
+        opts.addToRankingList = rankingId;
         return opts;
     }
 
