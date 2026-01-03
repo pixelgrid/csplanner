@@ -93,6 +93,7 @@
 
         jQuery(".cs-generate").click(e => {
             e.stopPropagation();
+            jQuery(".cs-dialog").addClass("generating");
             const basename = jQuery(".cs-generator .cs-basename").val();
             const start = Number(jQuery(".cs-generator .cs-start-num").val());
 
@@ -101,7 +102,7 @@
                 return;
             }
 
-            cloneTournaments(basename, dates, start);
+            cloneTournaments(basename, selectedDates, start);
         });
 
         jQuery(".cs-date-tags").on("click", ".tag", function(e){
@@ -259,6 +260,8 @@
         if (failed.length) {
             alert(`${failed.length} tournaments failed to generate`);
         }
+        jQuery(".cs-dialog")[0].close();
+        CS.StatusMessage.show("info", "info", "Tournaments created.")
     }
 
     /* =========================
@@ -326,5 +329,4 @@
     document.body.insertAdjacentHTML("beforeend", generateDialog());
     addCTA();
     addListeners();
-
 })();
