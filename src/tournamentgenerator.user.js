@@ -94,15 +94,10 @@
 
         jQuery(".cs-generate").click(e => {
             e.stopPropagation();
-            const dates = jQuery(".cs-tournament-dates")
-                .val()
-                .trim()
-                .split("\n")
-                .filter(Boolean);
             const basename = jQuery(".cs-generator .cs-basename").val();
             const start = Number(jQuery(".cs-generator .cs-start-num").val());
 
-            if (!basename || dates.length === 0 || start < 1) {
+            if (!basename || selectedDates.length === 0 || start < 1) {
                 alert("Basename, start number and at least one date are required");
                 return;
             }
