@@ -109,6 +109,7 @@
             const date = e.target.textContent.trim();
             selectedDates = selectedDates.filter(d => d !== date);
             updateDateTags();
+            updateOverview();
         })
 
         jQuery(".cs-date").datetimepicker({
