@@ -1,20 +1,20 @@
 // ==UserScript==
 // @name         CS Planner
 // @namespace    http://tampermonkey.net/
-// @version      v1.0.7
+// @version      v1.0.8
 // @description  Adds visual helpers for cuescore tournament managers
 // @author       Elton Kamami
-// @match        cuescore.com/tournament/*
+// @match        https://cuescore.com/tournament/*
+// @include      https://cuescore.com/tournament/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // @grant        none
-// @include      *
 // ==/UserScript==
 
 
 (() => {
 	'use strict';
 	if (
-		// not in top frame
+        // not in top frame
         !location.origin.match("cuescore") ||
         // not in tournament page
 		!location.pathname.startsWith('/tournament') ||
@@ -59,6 +59,7 @@
   position: relative;
   border: 1px solid red;
   border-bottom-width: 5px;
+  min-width: 70px;
 }
 
 .tableswitch:checked+label {
@@ -110,7 +111,7 @@ table.score select.tablePicker option {
 }
 
 .floatingmessage:after {
-  content: '  games can start';
+  content: '  game(s) can start';
 }
 
 .floatingmessage.expand {
@@ -136,28 +137,6 @@ table.score select.tablePicker option {
   bottom: 40px;
 }
 
-.floatingmessage:hover:before {
-  content: "click to expand";
-  position: absolute;
-  top: 120%;
-  font-size: 12px;
-  font-weight: normal;
-  width: 100%;
-  text-align: center;
-  left: 0;
-}
-
-.floatingmessage.expand:hover:before {
-  content: "click to shrink";
-  position: absolute;
-  top: 105%;
-  font-size: 12px;
-  font-weight: normal;
-  width: 100%;
-  text-align: center;
-  left: 0;
-  text-shadow: none;
-}
 .custom-table-select div:hover {
     background: lightgray;
     cursor: pointer;
@@ -179,6 +158,11 @@ table.score select.tablePicker option {
 }
 .custom-table-select.show{
     display: block;
+}
+.table-branch{
+    font-size: 14px;
+    font-weight: bold;
+    pointer-events: none;
 }
 @media (min-width: 1000px) {
   .tableswitch:checked+label:hover:before {
@@ -238,15 +222,16 @@ table.score select.tablePicker option {
 	function setupTables(venueData) {
 		const tableData = getTableData(venueData);
 		if (tableData.length === 0) return;
+        const groupedTables = groupTablesByBranch(tableData);
 		createTablesStyles(tableData);
-		createTableToggles(tableData);
-        createCustomTableSelect(tableData);
+		createTableToggles(groupedTables);
+        createCustomTableSelect(groupedTables);
 	}
 
 	function getTableData(venueData) {
 		return venueData.tables
 			.sort((a, b) => a.name - b.name)
-			.map((t) => ({ id: String(t.tableId), name: `Table ${t.name}` }));
+			.map((t) => ({ id: String(t.tableId), name: `Table ${t.name}`, branch: t.branch }));
 	}
 
 	function createTablesStyles(tableData = []) {
@@ -263,9 +248,9 @@ table.score select.tablePicker option {
 		);
 	}
 
-	function createTableToggles(tableData) {
+	function createTableToggles(groupedTables) {
 		const deactivatedTables = deactivatedTablesSettings.split(',');
-		const html = createTablesHtml(tableData, deactivatedTables);
+		const html = createTablesHtml(groupedTables, deactivatedTables);
 		document.querySelector('#tournament').insertAdjacentHTML('beforebegin', html);
         document.querySelector(".activetables").addEventListener("change", () => {
             const deactivatedTables = [
@@ -278,12 +263,26 @@ table.score select.tablePicker option {
         })
 	}
 
-    function createCustomTableSelect(tableData){
+    function groupTablesByBranch(tableData){
+        let groups = {};
+        for(let table of tableData){
+            const branch = table.branch;
+            if(!(branch in groups)){
+                groups[branch] = []
+            }
+            groups[branch].push(table)
+        }
+        return Object.entries(groups);
+    }
+    function createCustomTableSelect(groupedTables){
         let lastSelected = null;
         let customSelect = null;
+
         document.body.insertAdjacentHTML("beforeend", `<div class="custom-table-select">
            <div data-tableid="0">Table</div>
-           ${tableData.map(({id, name}) => `<div data-tableid="${id}">${name}</div>`).join("")}
+           ${groupedTables.map(([branch, tables]) => {
+             return `<div class="table-branch">${branch}</div>${tables.map(({id, name}) => `<div data-tableid="${id}">${name}</div>`).join("")}`
+           })}
         </div>`);
         document.querySelector("#Content").addEventListener("click", e => {
             if(!e.target.matches("td.table")){
@@ -323,10 +322,15 @@ table.score select.tablePicker option {
 		messageContainer.innerHTML = canStartNumber;
 	}
 
-	function createTablesHtml(tables, deactivatedTables) {
-		return `<div class="floatingmessage" onclick="this.classList.toggle('expand')"></div><h2>Tables used for the tournament</h2><div class="activetables">${tables
-			.map((table) => {
-				return `<input class="tableswitch" type="checkbox" value="${table.id}" id="table${table.id}" ${deactivatedTables.includes(table.id) ? '' : 'checked'}/><label class="tournamenttable" for="table${table.id}">${table.name}</label>`;
+	function createTablesHtml(groupedTables, deactivatedTables) {
+		return `<div class="floatingmessage" onclick="this.classList.toggle('expand')"></div><h2>Tables used for the tournament</h2><div>${groupedTables
+			.map(([branch, tables]) => {
+				return `<h4>${branch}</h4><div class="activetables">
+                ${tables.map(table => {
+                    return `<input class="tableswitch" type="checkbox" value="${table.id}" id="table${table.id}" ${deactivatedTables.includes(table.id) ? '' : 'checked'}/>
+                    <label class="tournamenttable" for="table${table.id}">${table.name}</label>`
+                }).join('')}
+                </div>`;
 			})
 			.join('')}</div>`;
 	}
@@ -469,6 +473,7 @@ table.score select.tablePicker option {
 
         VENUE_ID && fetchVenueData(VENUE_ID).then(setupTables);
     }
+
     if(inEditMode){
         init();
     } else {
