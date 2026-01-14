@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CS Planner
 // @namespace    http://tampermonkey.net/
-// @version      v1.0.8
+// @version      10
 // @description  Adds visual helpers for cuescore tournament managers
 // @author       Elton Kamami
 // @match        https://cuescore.com/tournament/*
@@ -25,6 +25,7 @@
 	){
 		return;
     }
+
     const inEditMode = !!document.querySelector("#drawSection .editLink.publicView");
 	document.head.insertAdjacentHTML(
 		'beforeend',
@@ -164,6 +165,13 @@ table.score select.tablePicker option {
     font-weight: bold;
     pointer-events: none;
 }
+.table-actions { display: inline-block; }
+.table-actions span {
+    font-size: 14px;
+    color: blue;
+    margin: 10px;
+    cursor: pointer;
+}
 @media (min-width: 1000px) {
   .tableswitch:checked+label:hover:before {
     content: "off";
@@ -251,8 +259,7 @@ table.score select.tablePicker option {
 	function createTableToggles(groupedTables) {
 		const deactivatedTables = deactivatedTablesSettings.split(',');
 		const html = createTablesHtml(groupedTables, deactivatedTables);
-		document.querySelector('#tournament').insertAdjacentHTML('beforebegin', html);
-        document.querySelector(".activetables").addEventListener("change", () => {
+        function saveTableStateToStorage(){
             const deactivatedTables = [
                 ...document.querySelectorAll('.tableswitch:not(:checked)'),
             ].map((e) => e.value);
@@ -260,6 +267,17 @@ table.score select.tablePicker option {
 				'deactivated-tables-' + VENUE_ID,
 				deactivatedTables.join()
 			);
+        }
+		document.querySelector('#tournament').insertAdjacentHTML('beforebegin', html);
+        document.querySelector(".tables-overview").addEventListener("change", saveTableStateToStorage);
+        document.querySelector(".tables-overview").addEventListener("click", e => {
+            if(!e.target.matches(".table-action")){
+                return;
+            }
+            const enableAll = e.target.classList.contains("enable-all");
+            const inputs = Array.from(e.target.parentElement.parentElement.nextElementSibling.querySelectorAll("input"));
+            inputs.forEach(i => {i.checked = enableAll ? true : false});
+            saveTableStateToStorage();
         })
 	}
 
@@ -282,7 +300,7 @@ table.score select.tablePicker option {
            <div data-tableid="0">Table</div>
            ${groupedTables.map(([branch, tables]) => {
              return `<div class="table-branch">${branch}</div>${tables.map(({id, name}) => `<div data-tableid="${id}">${name}</div>`).join("")}`
-           })}
+           }).join('')}
         </div>`);
         document.querySelector("#Content").addEventListener("click", e => {
             if(!e.target.matches("td.table")){
@@ -323,9 +341,9 @@ table.score select.tablePicker option {
 	}
 
 	function createTablesHtml(groupedTables, deactivatedTables) {
-		return `<div class="floatingmessage" onclick="this.classList.toggle('expand')"></div><h2>Tables used for the tournament</h2><div>${groupedTables
+		return `<div class="floatingmessage" onclick="this.classList.toggle('expand')"></div><h2>Tables used for the tournament</h2><div class="tables-overview">${groupedTables
 			.map(([branch, tables]) => {
-				return `<h4>${branch}</h4><div class="activetables">
+				return `<h4>${branch} <div class="table-actions"><span class="table-action disable-all">Disable all</span><span class="table-action enable-all">Enable all</span></div></h4><div class="activetables">
                 ${tables.map(table => {
                     return `<input class="tableswitch" type="checkbox" value="${table.id}" id="table${table.id}" ${deactivatedTables.includes(table.id) ? '' : 'checked'}/>
                     <label class="tournamenttable" for="table${table.id}">${table.name}</label>`
