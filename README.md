@@ -22,8 +22,9 @@ Mobile view
 ## For chrome:
 1. install [tampermokey for chrome](https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en)
 2. Type chrome://extensions/ in your address bar and enable developer mode from the top right
-3. open [plugin code](https://github.com/pixelgrid/csplanner/raw/refs/heads/main/src/planner.user.js)
-4. Click install
+3. In the same page click details in the tampermonkey extension block and then enable "Allow user scripts"
+4. open [plugin code](https://github.com/pixelgrid/csplanner/raw/refs/heads/main/src/planner.user.js)
+5. Click install
 
 ## For firefox:
 1. install [tampermokey for firefox](https://addons.mozilla.org/nl/firefox/addon/tampermonkey/)
