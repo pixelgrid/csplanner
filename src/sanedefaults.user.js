@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cuescore sane defaults
 // @namespace    http://tampermonkey.net/
-// @version      v1.0.3
+// @version      2
 // @description  Small changes that make cuescore better
 // @author       Elton Kamami
 // @match        https://cuescore.com/*
@@ -35,13 +35,12 @@
       .notificationRow a[href*="tournament"] img.pro,
       .latestPosts.card,
       .followingNotParticipating.card,
-      .cuescore-ad {
-        display: none;
-      }
+      .cuescore-ad { display: none; }
       .tournament.withbanner{background: white!important;}
       .latestMatches.card{order: -1;}
       .upcomingEvents.card{order: -2;}
       .score a {display: flex; gap: 4px; flex-direction: row-reverse;}
+      .ratingTable .score a { direction: rtl; }
     `);
 
     addCountryToTournamentSearchLinks();
