@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         Cuescore sane defaults
 // @namespace    http://tampermonkey.net/
-// @version      v1.0.2
+// @version      v1.0.3
 // @description  Small changes that make cuescore better
 // @author       Elton Kamami
 // @match        https://cuescore.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // @grant        GM_addStyle
-// @include      *
+// @include      https://cuescore.com/*
 // ==/UserScript==
 
 (function() {
