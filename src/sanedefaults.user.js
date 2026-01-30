@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cuescore sane defaults
 // @namespace    http://tampermonkey.net/
-// @version      5
+// @version      6
 // @description  Small changes that make cuescore better
 // @author       Elton Kamami
 // @match        https://cuescore.com/*
@@ -33,7 +33,7 @@
     }
 
     async function getRRManualDraw(tournamentId){
-        const res = await fetch(`https://cuescore.com/ajax/tournament/getRRManualDraw.php?id=${tournamentId}`);
+        const res = await fetch(`https://cuescore.com/ajax/tournament/getRRManualDraw.php?id=${tournamentId}&lang=en`);
         const text = await res.text();
         const parser = new DOMParser();
         return parser.parseFromString(text, 'text/html');
@@ -42,16 +42,20 @@
     async function getSEPairings(tournamentId){
         const dom = await getRRManualDraw(tournamentId);
         return [...dom.querySelectorAll('select')]
-            .map(s => [s.value, s.options[s.selectedIndex].text])
-            .map(([id, pos]) => {
+            .map(s => [s.value, s.options[s.selectedIndex].text, s.name])
+            .map(([id, pos, matchDetails]) => {
 
               // already set, skip
-              if(id !== '0'){
+              if(id !== '0' || pos.match(/random/i)){
                 return null
               }
+
+              // Group A no 2
               const [, letter, num] = pos.match(/Group\s+([A-Z])\s+no\s+(\d+)/i);
+              // match[<matchid>][A|B]
+              const [, matchId, player] = matchDetails.match(/match\[(\d+)\]\[([A-Z])\]/);
               const groupAsNumber = letter.toUpperCase().charCodeAt(0) - 64;
-              return {playerId: id, text: pos, group: groupAsNumber, place: num};
+              return {text: pos, group: groupAsNumber, place: Number(num), matchId, player};
         }).filter(Boolean)
     }
 
@@ -61,12 +65,16 @@
         const tournamentId = location.pathname.split("/").at(-1);
         const players = Array.from(document.querySelectorAll(`tr.match[data-roundno='${drawRound}'] .upcoming`))
         const pairings = await getSEPairings(tournamentId);
-        const tournamendData = await fetchTournamendData(tournamentId)
-        for(let [index, player] of players.entries()){
-            if(pairings[index].playerId === '0'){
-               const name = tournamendData.standings[pairings[index].group][Number(pairings[index].place) - 1].player.name;
-               player.textContent = `${pairings[index].text} (${name})`;
-            }
+        const tournamendData = await fetchTournamendData(tournamentId);
+
+        const updates = []
+        for(let p of pairings){
+            const {text, group, place, matchId, player} = p;
+            const name = tournamendData.standings[group][place - 1].player.name;
+            updates.push([`#match-${matchId} .player${player} .name`, `${text} (${name})`]);
+        }
+        for(let [selector, text] of updates){
+            document.querySelector(selector).textContent = text;
         }
     }
 
