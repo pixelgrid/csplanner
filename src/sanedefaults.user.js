@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cuescore sane defaults
 // @namespace    http://tampermonkey.net/
-// @version      4
+// @version      5
 // @description  Small changes that make cuescore better
 // @author       Elton Kamami
 // @match        https://cuescore.com/*
@@ -63,7 +63,7 @@
         const tournamendData = await fetchTournamendData(tournamentId)
         for(let [index, player] of players.entries()){
             if(pairings[index].playerId === '0'){
-               const name = tournamendData.standings[pairings[index].group][pairings[index].place].player.name;
+               const name = tournamendData.standings[pairings[index].group][Number(pairings[index].place) - 1].player.name;
                player.textContent = `${pairings[index].text} (${name})`;
             }
         }
