@@ -14,8 +14,9 @@
     'use strict';
 
     // only run on top frame
-    if(!location.origin.match("cuescore"))
+    if(!location.origin.match("cuescore")){
         return;
+    }
 
     const LOCALSTORAGE_KEY = "cs-default-country";
     const COUNTRY_ID = '1000231'; // NL
@@ -30,6 +31,46 @@
         [...document.querySelectorAll("a.challenges")].forEach(l => {l.href = '/challenges?c=' + COUNTRY_ID});
     }
 
+    async function getRRManualDraw(tournamentId){
+        const res = await fetch(`https://cuescore.com/ajax/tournament/getRRManualDraw.php?id=${tournamentId}`);
+        const text = await res.text();
+        const parser = new DOMParser();
+        return parser.parseFromString(text, 'text/html');
+    }
+
+    async function getSEPairings(){
+        const tournamentId = location.pathname.split("/").at(-1);
+        const dom = await getRRManualDraw(tournamentId);
+        return [...dom.querySelectorAll('select')].map(s => [s.value, s.options[s.selectedIndex].text]).map(([id, pos]) => {
+
+            const [, letter, num] = pos.match(/Group\s+([A-Z])\s+no\s+(\d+)/i);
+
+            const groupAsNumber = letter.toUpperCase().charCodeAt(0) - 64;
+            return [id, pos, groupAsNumber, num];
+        })
+    }
+
+    async function populateNames(){
+        const drawRound = document.querySelector(".round.drawround").dataset.roundno;
+        const players = Array.from(document.querySelectorAll(`tr.match[data-roundno='${drawRound}'] .upcoming`))
+        const pairings = await getSEPairings();
+        for(let [index, player] of players.entries()){
+            if(pairings[index][0] === '0'){
+               player.textContent = pairings[index][1]
+            }
+        }
+    }
+
+    function addShowDrawButton(){
+        const drawFormat = document.querySelector("table.score")?.dataset.format;
+        const drawRoundElement = document.querySelector(".round.drawround .roundHead");
+        if(!drawFormat || !drawRoundElement || drawFormat !== '4'){
+            return;
+        }
+        drawRoundElement.insertAdjacentHTML("beforeend", `<a href="#" onclick="return false;" class="show-pairings">Show pairings</a>`);
+        document.querySelector(".show-pairings").addEventListener("click", populateNames);
+    }
+
     GM_addStyle(`
       .tournament.banner,
       .notificationRow a[href*="tournament"] img.pro,
@@ -41,8 +82,11 @@
       .upcomingEvents.card{order: -2;}
       .score a {display: flex; gap: 4px; flex-direction: row-reverse;}
       .ratingTable .score a { direction: rtl; }
+      a.show-pairings {font-size: 14px;margin-left: auto;}
     `);
 
     addCountryToTournamentSearchLinks();
     addCountryToChallendesLinks();
+    addShowDrawButton();
+
 })();
