@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cuescore sane defaults
 // @namespace    http://tampermonkey.net/
-// @version      7
+// @version      8
 // @description  Small changes that make cuescore better
 // @author       Elton Kamami
 // @match        https://cuescore.com/*
@@ -93,6 +93,33 @@
         document.querySelector(".show-pairings").addEventListener("click", populateNames);
     }
 
+    function getParticipants(id){
+        return fetch(`https://api.cuescore.com/tournament/?id=${id}&participants=Participants+list`).then(r => r.json())
+    }
+
+    function appendParticipantsList(res){
+        let [id, participants] = res;
+        let element = document.querySelector(`[data-pin-id='${id}']`).closest("tr").querySelector("div.info span");
+        const names = participants.map(p => p.name).sort().join(", ");
+        element.innerHTML += "<br><b>Players:</b> " + names;
+    }
+    async function addParticipants(){
+        if(location.pathname !== '/tournaments/'){
+            return;
+        }
+        const result = [];
+        const tournamentLinks = [...document.querySelectorAll("td .name a")];
+        const tournamentIds = tournamentLinks.map(a => a.href.split("/").at(-1));
+        const participants = await Promise.allSettled(tournamentIds.map(id => getParticipants(id)));
+        for(let i = 0; i < tournamentIds.length; i++){
+            if(participants[i].status === 'fulfilled'){
+                result.push([tournamentIds[i], participants[i].value])
+            }
+        }
+        for(let res of result)
+            appendParticipantsList(res)
+    }
+
     GM_addStyle(`
       .tournament.banner,
       .notificationRow a[href*="tournament"] img.pro,
@@ -109,5 +136,6 @@
     addCountryToTournamentSearchLinks();
     addCountryToChallendesLinks();
     addShowDrawButton();
+    addParticipants();
 
 })();
