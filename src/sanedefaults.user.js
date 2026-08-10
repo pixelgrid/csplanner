@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cuescore sane defaults
 // @namespace    http://tampermonkey.net/
-// @version      11
+// @version      12
 // @description  Small changes that make cuescore better
 // @author       Elton Kamami
 // @match        https://cuescore.com/*
@@ -148,6 +148,7 @@
       .ratingTable .score a { direction: rtl; }
       a.show-pairings {font-size: 14px;margin-left: auto;}
       .hpnotif{margin-bottom:20px; font-size: 14px;}
+      .hpnotif a {color: #004DAA; font-weight:600;}
     `);
 
     addCountryToTournamentSearchLinks();
