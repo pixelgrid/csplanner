@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cuescore sane defaults
 // @namespace    http://tampermonkey.net/
-// @version      8
+// @version      9
 // @description  Small changes that make cuescore better
 // @author       Elton Kamami
 // @match        https://cuescore.com/*
@@ -103,21 +103,21 @@
         const names = participants.map(p => p.name).sort().join(", ");
         element.innerHTML += "<br><b>Players:</b> " + names;
     }
-    async function addParticipants(){
+    async function displayParticipants(id){
+        const participants = await getParticipants(id);
+        appendParticipantsList([id, participants]);
+    }
+    async function addParticipants(tId){
         if(location.pathname !== '/tournaments/'){
             return;
         }
-        const result = [];
-        const tournamentLinks = [...document.querySelectorAll("td .name a")];
-        const tournamentIds = tournamentLinks.map(a => a.href.split("/").at(-1));
-        const participants = await Promise.allSettled(tournamentIds.map(id => getParticipants(id)));
-        for(let i = 0; i < tournamentIds.length; i++){
-            if(participants[i].status === 'fulfilled'){
-                result.push([tournamentIds[i], participants[i].value])
-            }
-        }
-        for(let res of result)
-            appendParticipantsList(res)
+        document.body.addEventListener("click", e => {
+          if(!e.target.matches("tr.tournament span.organizer")){
+              return;
+          }
+          const tournamentId = e.target.closest("tr").querySelector("input.followChecker").dataset.pinId;
+          displayParticipants(tournamentId);
+        })
     }
 
     GM_addStyle(`
