@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cuescore sane defaults
 // @namespace    http://tampermonkey.net/
-// @version      9
+// @version      10
 // @description  Small changes that make cuescore better
 // @author       Elton Kamami
 // @match        https://cuescore.com/*
@@ -120,6 +120,22 @@
         })
     }
 
+    async function showNotifications(){
+        const response = await fetch("https://cuescore.com/ajax/notifications/getNotifications.php");
+        const notifications = await response.text();
+        let el = document.createElement("table");
+        el.className = "hpnotif";
+        el.innerHTML = notifications;
+        while (el.tBodies[0].children.length > 5) {
+            el.tBodies[0].lastElementChild.remove();
+        }
+        const images = Array.from(el.querySelectorAll("img"));
+        for(let image of images)
+            image.remove()
+        document.querySelector("header").insertAdjacentElement("afterend", el);
+
+    }
+
     GM_addStyle(`
       .tournament.banner,
       .notificationRow a[href*="tournament"] img.pro,
@@ -131,11 +147,14 @@
       .upcomingEvents.card{order: -2;}
       .ratingTable .score a { direction: rtl; }
       a.show-pairings {font-size: 14px;margin-left: auto;}
+      .hpnotif{margin-bottom:20px; font-size: 14px;width:100%;}
+      .hpnotif tr {border-bottom: 1px solid #d2d2d2;}
     `);
 
     addCountryToTournamentSearchLinks();
     addCountryToChallendesLinks();
     addShowDrawButton();
     addParticipants();
+    showNotifications();
 
 })();
