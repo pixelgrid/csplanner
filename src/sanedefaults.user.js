@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cuescore sane defaults
 // @namespace    http://tampermonkey.net/
-// @version      12
+// @version      13
 // @description  Small changes that make cuescore better
 // @author       Elton Kamami
 // @match        https://cuescore.com/*
@@ -9,6 +9,10 @@
 // @grant        GM_addStyle
 // @include      https://cuescore.com/*
 // ==/UserScript==
+
+const MOKUM_VENUE_ID = 'mokumpooldarts';
+const PLANB_VENUE_ID = 'planb';
+const BOVEN_VENUE_SLUG = 'boventij';
 
 (function() {
     'use strict';
@@ -112,15 +116,25 @@
             return;
         }
         document.body.addEventListener("click", e => {
-          if(!e.target.matches("tr.tournament span.organizer")){
+          if(!e.target.matches("div.info")){
               return;
           }
           const tournamentId = e.target.closest("tr").querySelector("input.followChecker").dataset.pinId;
           displayParticipants(tournamentId);
         })
+
+        const amsTourneys = [...document.querySelector(".content.tournaments").querySelectorAll('a[href$="mokumpooldarts"], a[href$="planb"], a[href$="boventij"]')].map(r => {
+            return r.closest("tr").querySelector("input.followChecker").dataset.pinId
+        });
+        for(let t of amsTourneys){
+            displayParticipants(t);
+        }
     }
 
     async function showNotifications(){
+        if(!window.location.pathname.startsWith("/player")){
+            return
+        }
         const response = await fetch("https://cuescore.com/ajax/notifications/getNotifications.php");
         const notifications = await response.text();
         let el = document.createElement("table");
@@ -130,8 +144,9 @@
             el.tBodies[0].lastElementChild.remove();
         }
         const images = Array.from(el.querySelectorAll("img"));
-        for(let image of images)
+        for(let image of images){
             image.remove()
+        }
         document.querySelector("header").insertAdjacentElement("afterend", el);
 
     }
@@ -147,7 +162,7 @@
       .upcomingEvents.card{order: -2;}
       .ratingTable .score a { direction: rtl; }
       a.show-pairings {font-size: 14px;margin-left: auto;}
-      .hpnotif{margin-bottom:20px; font-size: 14px;}
+      .hpnotif{margin-bottom:20px; font-size: 16px;}
       .hpnotif a {color: #004DAA; font-weight:600;}
     `);
 
