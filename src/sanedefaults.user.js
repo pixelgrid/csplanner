@@ -10,10 +10,6 @@
 // @include      https://cuescore.com/*
 // ==/UserScript==
 
-const MOKUM_VENUE_ID = 'mokumpooldarts';
-const PLANB_VENUE_ID = 'planb';
-const BOVEN_VENUE_SLUG = 'boventij';
-
 (function() {
     'use strict';
 
