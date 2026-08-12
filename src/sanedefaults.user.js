@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cuescore sane defaults
 // @namespace    http://tampermonkey.net/
-// @version      13
+// @version      14
 // @description  Small changes that make cuescore better
 // @author       Elton Kamami
 // @match        https://cuescore.com/*
@@ -9,6 +9,10 @@
 // @grant        GM_addStyle
 // @include      https://cuescore.com/*
 // ==/UserScript==
+
+const MOKUM_VENUE_ID = 'mokumpooldarts';
+const PLANB_VENUE_ID = 'planb';
+const BOVEN_VENUE_SLUG = 'boventij';
 
 (function() {
     'use strict';
@@ -147,6 +151,43 @@
 
     }
 
+    function disableDarkMode(){
+        const lightVars = {};
+
+        for (const sheet of document.styleSheets) {
+            let rules;
+
+            try {
+                rules = sheet.cssRules;
+            } catch {
+                // Cross-origin stylesheet
+                continue;
+            }
+
+            for (const rule of rules) {
+                if (rule.selectorText === ':root') {
+                    for (const prop of rule.style) {
+                        if (prop.startsWith('--')) {
+                            lightVars[prop] = rule.style.getPropertyValue(prop);
+                        }
+                    }
+                }
+            }
+        }
+
+        const style = document.createElement('style');
+
+        style.textContent = `
+    :root {
+        color-scheme: light !important;
+        ${Object.entries(lightVars)
+            .map(([name, value]) => `${name}: ${value} !important;`)
+            .join('\n')}
+    }
+`;
+
+        document.head.appendChild(style);
+    }
     GM_addStyle(`
       .tournament.banner,
       .notificationRow a[href*="tournament"] img.pro,
@@ -167,5 +208,6 @@
     addShowDrawButton();
     addParticipants();
     showNotifications();
+    disableDarkMode();
 
 })();
