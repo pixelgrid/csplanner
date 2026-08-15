@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CS Planner
 // @namespace    http://tampermonkey.net/
-// @version      1
+// @version      2
 // @description  Adds visual helpers for cuescore tournament managers
 // @author       Elton Kamami
 // @match        https://cuescore.com/tournament/*
@@ -434,6 +434,10 @@ table.score select.tablePicker option {
 			const running = tournamentData.matches.filter(
 				(m) => m.matchstatusCode === GAME_STATUS.PLAYING
 			);
+			tournamentData.matches.forEach(m => {
+              m.playerA.playerId = m.playerA.playerId ?? m.playerA.teamId;
+              m.playerB.playerId = m.playerB.playerId ?? m.playerB.teamId;
+            })
 			const waiting = tournamentData.matches
 				.filter((m) => m.matchstatusCode === GAME_STATUS.WAITING)
 				.filter((m) => {
