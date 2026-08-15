@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cuescore sane defaults
 // @namespace    http://tampermonkey.net/
-// @version      14
+// @version      15
 // @description  Small changes that make cuescore better
 // @author       Elton Kamami
 // @match        https://cuescore.com/*
@@ -188,6 +188,103 @@ const BOVEN_VENUE_SLUG = 'boventij';
 
         document.head.appendChild(style);
     }
+
+
+    function groupTournamentsByDate(){
+        if(location.pathname !== '/tournaments/'){
+            return;
+        }
+        const tbody = document.querySelector('tbody');
+
+        if (!tbody) return;
+
+        // Remove grouping rows from a previous run
+        tbody.querySelectorAll('tr.tournament-date-group').forEach(row => {
+            row.remove();
+        });
+
+        const tournamentRows = [...tbody.querySelectorAll('tr.tournament')];
+
+        let previousDate = null;
+
+        const formatter = new Intl.DateTimeFormat(undefined, {
+            weekday: 'long',
+            day: 'numeric'
+        });
+
+        for (const row of tournamentRows) {
+            const dateElement = row.querySelector('.date');
+
+            if (!dateElement) continue;
+
+            const dateText = dateElement.textContent.trim();
+
+            // Extract the first date.
+            //
+            // Handles:
+            // "August 14, 2026"
+            // "August 16 - August 6, 2026"
+            const match = dateText.match(
+                /([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})/
+            );
+
+            if (!match) continue;
+
+            const [, month, day, year] = match;
+
+            // Use noon to avoid timezone / DST edge cases.
+            const date = new Date(
+                `${month} ${day}, ${year} 12:00:00`
+            );
+
+            if (Number.isNaN(date.getTime())) continue;
+
+            // Stable date key for comparison.
+            const dateKey = [
+                date.getFullYear(),
+                String(date.getMonth() + 1).padStart(2, '0'),
+                String(date.getDate()).padStart(2, '0')
+            ].join('-');
+
+            // Only create a row when the date changes.
+            if (dateKey === previousDate) {
+                continue;
+            }
+
+            // Get the localized weekday and day separately so that
+            // we can force the desired "Friday 14" ordering.
+            const parts = formatter.formatToParts(date);
+
+            const weekday = parts.find(
+                part => part.type === 'weekday'
+            )?.value;
+
+            const dayValue = parts.find(
+                part => part.type === 'day'
+            )?.value;
+
+            if (!weekday || !dayValue) continue;
+
+            // Create the grouping <tr>
+            const groupingRow = document.createElement('tr');
+
+            groupingRow.className = 'tournament-date-group';
+
+            // Create the <td>
+            const cell = document.createElement('td');
+
+            cell.colSpan = 100;
+            cell.textContent = `${weekday} ${dayValue}`;
+
+            groupingRow.appendChild(cell);
+
+            // Insert immediately before the first tournament
+            // belonging to this date.
+            row.before(groupingRow);
+
+            previousDate = dateKey;
+        }
+    }
     GM_addStyle(`
       .tournament.banner,
       .notificationRow a[href*="tournament"] img.pro,
@@ -201,6 +298,7 @@ const BOVEN_VENUE_SLUG = 'boventij';
       a.show-pairings {font-size: 14px;margin-left: auto;}
       .hpnotif{margin-bottom:20px; font-size: 16px;}
       .hpnotif a {color: #004DAA; font-weight:600;}
+      .tournament-date-group{background: #f2f2f2;color: black;font-weight: bold;}
     `);
 
     addCountryToTournamentSearchLinks();
@@ -209,5 +307,6 @@ const BOVEN_VENUE_SLUG = 'boventij';
     addParticipants();
     showNotifications();
     disableDarkMode();
+    groupTournamentsByDate();
 
 })();
