@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cuescore sane defaults
 // @namespace    http://tampermonkey.net/
-// @version      17
+// @version      18
 // @description  Small changes that make cuescore better
 // @author       Elton Kamami
 // @match        https://cuescore.com/*
@@ -95,16 +95,29 @@
     function getParticipants(id){
         return fetch(`https://api.cuescore.com/tournament/?id=${id}&participants=Participants+list`).then(r => r.json())
     }
-
-    function appendParticipantsList(res){
+    function getResults(id){
+        return fetch(`https://api.cuescore.com/tournament/?id=${id}&results=Result+list`).then(r => r.json())
+    }
+    function appendParticipantsList(res, finished){
         let [id, participants] = res;
         let element = document.querySelector(`[data-pin-id='${id}']`).closest("tr").querySelector("div.info span");
-        const names = participants.map(p => p.name).sort().join(", ");
+        let names;
+
+        if(finished){
+            names = Object.entries(participants.results).map(([pos, pl]) => `(${pos}) ${pl.flat().map(p => p.name).join("/")}`).join(",")
+        } else {
+            names = participants.map(p => p.name).sort().join(", ");
+        }
         element.innerHTML += "<br><b>Players:</b> " + names;
     }
-    async function displayParticipants(id){
-        const participants = await getParticipants(id);
-        appendParticipantsList([id, participants]);
+    async function displayParticipants(id, finished = false){
+        let participants;
+        if(finished){
+            participants = await getResults(id);
+        } else {
+            participants = await getParticipants(id);
+        }
+        appendParticipantsList([id, participants], finished);
     }
     async function addParticipants(tId){
         if(location.pathname !== '/tournaments/'){
@@ -119,10 +132,10 @@
         })
 
         const amsTourneys = [...document.querySelector(".content.tournaments").querySelectorAll('a[href$="mokumpooldarts"], a[href$="planb"], a[href$="boventij"], a[href$="poollokaaldegracht"]')].map(r => {
-            return r.closest("tr").querySelector("input.followChecker").dataset.pinId
+            return [r.closest("tr").querySelector("input.followChecker").dataset.pinId, !!r.closest("tr").querySelector(".date.result")]
         });
-        for(let t of amsTourneys){
-            displayParticipants(t);
+        for(let [t, l] of amsTourneys){
+            displayParticipants(t, l);
         }
     }
 
