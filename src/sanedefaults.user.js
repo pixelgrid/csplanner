@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cuescore sane defaults
 // @namespace    http://tampermonkey.net/
-// @version      15
+// @version      16
 // @description  Small changes that make cuescore better
 // @author       Elton Kamami
 // @match        https://cuescore.com/*
@@ -285,6 +285,18 @@ const BOVEN_VENUE_SLUG = 'boventij';
             previousDate = dateKey;
         }
     }
+    async function showTeamMembers(){
+        if(!document.querySelector("#addTeams") || !document.querySelector('.participantList')){
+            return;
+        }
+        const tournamentId = location.pathname.split('/').at(-1);
+        const participants = await getParticipants(tournamentId);
+        for(let team of participants){
+            const {teamId, members} = team;
+            const membersText = members.map(m => `<br/><a style="color:darkblue;" href="${m.url}" target=_blank>${m.name}</a>`).join();
+            document.querySelector("#participant-"+teamId).querySelector(".name").innerHTML += membersText;
+        }
+    };
     GM_addStyle(`
       .tournament.banner,
       .notificationRow a[href*="tournament"] img.pro,
@@ -308,5 +320,6 @@ const BOVEN_VENUE_SLUG = 'boventij';
     showNotifications();
     disableDarkMode();
     groupTournamentsByDate();
+    showTeamMembers();
 
 })();
