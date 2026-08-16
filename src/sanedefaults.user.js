@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cuescore sane defaults
 // @namespace    http://tampermonkey.net/
-// @version      16
+// @version      17
 // @description  Small changes that make cuescore better
 // @author       Elton Kamami
 // @match        https://cuescore.com/*
@@ -9,11 +9,6 @@
 // @grant        GM_addStyle
 // @include      https://cuescore.com/*
 // ==/UserScript==
-
-const MOKUM_VENUE_ID = 'mokumpooldarts';
-const PLANB_VENUE_ID = 'planb';
-const BOVEN_VENUE_SLUG = 'boventij';
-
 (function() {
     'use strict';
 
@@ -123,7 +118,7 @@ const BOVEN_VENUE_SLUG = 'boventij';
           displayParticipants(tournamentId);
         })
 
-        const amsTourneys = [...document.querySelector(".content.tournaments").querySelectorAll('a[href$="mokumpooldarts"], a[href$="planb"], a[href$="boventij"]')].map(r => {
+        const amsTourneys = [...document.querySelector(".content.tournaments").querySelectorAll('a[href$="mokumpooldarts"], a[href$="planb"], a[href$="boventij"], a[href$="poollokaaldegracht"]')].map(r => {
             return r.closest("tr").querySelector("input.followChecker").dataset.pinId
         });
         for(let t of amsTourneys){
