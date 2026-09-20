@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cuescore sane defaults
 // @namespace    http://tampermonkey.net/
-// @version      18
+// @version      11
 // @description  Small changes that make cuescore better
 // @author       Elton Kamami
 // @match        https://cuescore.com/*
@@ -19,11 +19,12 @@
 
     const LOCALSTORAGE_KEY = "cs-default-country";
     const COUNTRY_ID = '1000231'; // NL
+    const COUNTRY_NAME = 'netherlands';
     const YESTERDAY = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 
     // override link to tournaments page to have country preselected
     function addCountryToTournamentSearchLinks(){
-        [...document.querySelectorAll("a.tournaments")].forEach(l => {l.href = `/tournaments?c=${COUNTRY_ID}&date=${YESTERDAY}`});
+        [...document.querySelectorAll("a.tournaments")].forEach(l => {l.href = `/tournaments?country=${COUNTRY_NAME}&date=${YESTERDAY}`});
     }
 
      // override link to challenges page to have country preselected
