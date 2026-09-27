@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cuescore sane defaults
 // @namespace    http://tampermonkey.net/
-// @version      11
+// @version      12
 // @description  Small changes that make cuescore better
 // @author       Elton Kamami
 // @match        https://cuescore.com/*
@@ -322,13 +322,13 @@
       .tournament-date-group{background: #f2f2f2;color: black;font-weight: bold;}
     `);
 
-    addCountryToTournamentSearchLinks();
-    addCountryToChallendesLinks();
+    //addCountryToTournamentSearchLinks();
+    //addCountryToChallendesLinks();
     addShowDrawButton();
-    addParticipants();
+    //addParticipants();
     showNotifications();
     disableDarkMode();
-    groupTournamentsByDate();
+    //groupTournamentsByDate();
     showTeamMembers();
 
 })();
