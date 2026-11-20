@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cuescore sane defaults
 // @namespace    http://tampermonkey.net/
-// @version      20
+// @version      21
 // @description  Small changes that make cuescore better
 // @author       Elton Kamami
 // @match        https://cuescore.com/*
@@ -302,7 +302,7 @@
         const participants = await getParticipants(tournamentId);
         for(let team of participants){
             const {teamId, members} = team;
-            const membersText = members.map(m => `<br/><a style="color:darkblue;" href="${m.url}" target=_blank>${m.name}</a>`).join();
+            const membersText = (members || []).map(m => `<br/><a style="color:darkblue;" href="${m.url}" target=_blank>${m.name}</a>`).join();
             document.querySelector("#participant-"+teamId).querySelector(".name").innerHTML += membersText;
         }
     };
